@@ -1,0 +1,22 @@
+# config/clients/client_exemple_petite.yaml
+# Exemple : petite infrastructure (socle minimum, sans HA, mailstore unique)
+
+client:
+  name: "Client Exemple Petite Infra"
+  domaines: 2
+  comptes: 800
+  volumetrie_to: 1.5
+  stockage_objet: false
+
+services:
+  chat: true
+  tache: true
+  files: false
+  edition_collaborative: false
+  visio: false
+
+infra:
+  imap: true                  # non déterminant ici (comptes < 20000)
+  migration_factory: false
+  ha_tier: auto                # "auto" | 0 | 1 | 2 | 3
+  mailstore_count: auto        # "auto" | entier explicite

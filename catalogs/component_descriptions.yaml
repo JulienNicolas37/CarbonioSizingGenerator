@@ -1,0 +1,24 @@
+# catalogs/component_descriptions.yaml
+# Descriptions textuelles des rôles — séparées de vm_catalog.yaml qui ne
+# contient que des specs numériques.
+
+mesh: "Coordination inter-nœuds / service discovery — présent sur tous les nœuds d'infrastructure"
+directory_master: "Annuaire LDAP en écriture — un seul par infrastructure"
+directory_replica: "Annuaire LDAP en lecture, synchronisé depuis le Master"
+database: "Bases PostgreSQL (mailbox, files, docs, tâches, chat)"
+mailbox: "Cœur applicatif : messages, calendriers, contacts, API SOAP/REST, IMAP/POP3"
+proxy: "Reverse-proxy HTTP/S et proxy mail, point d'entrée public"
+mta_in: "Réception du courrier entrant, filtrage antispam/antivirus, vérification SPF/DKIM/DMARC"
+mta_auth: "Soumission authentifiée (port 587)"
+mta_out: "Émission du courrier sortant, signature DKIM"
+files: "Stockage de fichiers et partage documentaire"
+docs: "Édition bureautique en ligne via Collabora Online"
+chat: "Messagerie instantanée temps réel, notifications"
+tasks: "Gestion de tâches / listes de choses à faire"
+videoconf: "Agrégation des flux WebRTC des réunions vidéo — zone DMZ (NAT 1:1 direct)"
+monitoring: "Supervision et métriques de la plateforme"
+migration_factory: >
+  VM temporaire utilisée le temps de la migration initiale, retirée ensuite.
+  Attention constatée sur le terrain : nécessite parfois un OS et un
+  formatage disque spécifiques (ex. Ubuntu 24.04 + disque Appli en XFS)
+  selon les outils de migration utilisés — à confirmer par client.

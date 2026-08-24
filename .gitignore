@@ -1,0 +1,17 @@
+# Configs clients réelles jamais suivies (seuls les 2 exemples le sont)
+config/clients/*.yaml
+!config/clients/client_exemple_petite.yaml
+!config/clients/univ_amboise.yaml
+
+# Dossiers de génération (sorties/tex/pdf intermédiaires) jamais suivis
+build/*/generation/
+build/*/
+!build/client_exemple_petite/
+!build/univ_amboise/
+build/client_exemple_petite/generation/
+build/univ_amboise/generation/
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,172 @@
+# catalogs/sizing_rules.yaml
+# Règles de dimensionnement — programme, jamais dupliquées dans une config client.
+
+base_minimum:
+  # Toujours présent, quel que soit le nombre de comptes
+  proxy_mta_pair:
+    count: 2
+    zone: DMZ
+    components: [proxy, mta_in, mta_auth, mta_out]   # colocalisés tant que < seuil HA
+  services:
+    count: 3
+    zone: LAN
+    # Répartition standard sur les 3 VM Services (pattern services01/02/03
+    # du Générateur de DAT) :
+    #   services01: [mesh, directory_master]
+    #   services02: [mesh, directory_replica]
+    #   services03: [mesh, database]
+  mailstore:
+    count: 1
+    zone: LAN
+
+ha_scaling:
+  # Paliers progressifs d'éclatement de la paire proxy_mta_pair de base.
+  # Le moteur retient le palier le plus élevé dont min_accounts <= comptes
+  # ET dont toutes les conditions "requires" (si présentes) sont
+  # satisfaites — sinon il retombe sur le palier qualifiant précédent.
+  tiers:
+    - level: 0
+      min_accounts: 0
+      groups:
+        - id_prefix: "proxy_mta"
+          components: [proxy, mta_in, mta_auth, mta_out]
+          count: 2
+          zone: DMZ
+
+    - level: 1
+      # Premier palier HA : on sépare "entrée/sortie" (mta_in+mta_out)
+      # de "accès utilisateur" (proxy+mta_auth).
+      min_accounts: 4000
+      groups:
+        - id_prefix: "proxy_auth"
+          components: [proxy, mta_auth]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_inout"
+          components: [mta_in, mta_out]
+          count: 2
+          zone: DMZ
+
+    - level: 2
+      # mta_in et mta_out prennent chacun leur propre paire de VM.
+      min_accounts: 10000
+      groups:
+        - id_prefix: "proxy_auth"
+          components: [proxy, mta_auth]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_in"
+          components: [mta_in]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_out"
+          components: [mta_out]
+          count: 2
+          zone: DMZ
+
+    - level: 3
+      # proxy et mta_auth se séparent à leur tour, mais seulement si
+      # l'IMAP en accès direct est proposé aux utilisateurs (sinon on
+      # reste au palier 2, même au-delà de 20000 comptes).
+      min_accounts: 20000
+      requires: [imap]
+      groups:
+        - id_prefix: "proxy"
+          components: [proxy]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_auth"
+          components: [mta_auth]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_in"
+          components: [mta_in]
+          count: 2
+          zone: DMZ
+        - id_prefix: "mta_out"
+          components: [mta_out]
+          count: 2
+          zone: DMZ
+
+  # Question posée uniquement quand elle devient pertinente (comptes
+  # proches ou au-delà de 20000) — pas systématiquement dès le début du
+  # questionnaire.
+  conditional_questions:
+    imap:
+      prompt: "L'accès IMAP direct est-il proposé aux utilisateurs ?"
+      ask_when_accounts_gte: 20000
+      default: true
+
+  selection:
+    # Le palier calculé à partir du nombre de comptes (+ IMAP le cas
+    # échéant) est une SUGGESTION, jamais imposée automatiquement. En
+    # mode interactif, l'utilisateur voit la proposition et choisit de
+    # l'appliquer ou de sélectionner un autre palier manuellement. En
+    # mode --client (config existante), le champ infra.ha_tier de la
+    # config fait foi — "auto" recalcule la suggestion, un entier (0-3)
+    # force ce palier explicitement.
+    mode: "suggested_with_override"
+    prompt: >
+      Palier de répartition de charge suggéré d'après {comptes} comptes
+      {et_imap} : palier {level} ({resume_groups}). Voulez-vous appliquer
+      cette suggestion, ou choisir un autre palier ?
+    config_field: "infra.ha_tier"   # "auto" (défaut) | 0 | 1 | 2 | 3
+
+mailstore_scaling:
+  # Un mailstore = jusqu'à 5000 comptes ET jusqu'à 5 To de données en
+  # stockage block (le premier seuil atteint déclenche un mailstore
+  # supplémentaire).
+  max_accounts_per_mailstore: 5000
+  max_block_data_to_per_mailstore: 5
+  # Si stockage Objet activé : le stockage block n'est plus le facteur
+  # dimensionnant pour la volumétrie de données (seul le nombre de comptes
+  # compte pour déterminer le nombre de mailstores). Le disque "Store"
+  # de chaque mailstore reste au minimum défini dans vm_catalog.yaml.
+  object_storage_ignores_volumetry: true
+
+  selection:
+    # Comme pour ha_scaling : le nombre de mailstores calculé par la règle
+    # ci-dessus est une SUGGESTION, ajustable par l'utilisateur — mais pas
+    # au fil du questionnaire (la donnée définitive de comptes/volumétrie
+    # n'est connue qu'à la fin) : ajustement proposé lors de la
+    # rétrospective finale (voir review_step ci-dessous).
+    mode: "suggested_with_override"
+    config_field: "infra.mailstore_count"   # "auto" (défaut) | entier explicite
+
+review_step:
+  # Étape de fin de questionnaire (mode interactif uniquement) : récapitule
+  # les valeurs calculées automatiquement avant de générer le YAML client.
+  description: >
+    Affiche un résumé (palier HA proxy/MTA retenu, nombre de mailstores,
+    nœuds Application01/02, usine de migration le cas échéant) et permet
+    d'ajuster manuellement le nombre de VM mailstore avant validation
+    finale. Les autres valeurs du résumé restent informatives à ce stade
+    (non éditables ici), sauf évolution future de ce mécanisme.
+  editable_fields: [infra.mailstore_count]
+
+application_grouping:
+  # Un nœud "ApplicationNN" par groupe, créé seulement si au moins un des
+  # services du groupe est sélectionné par le client.
+  application_01:
+    services: [chat, tache]
+    label: "Application01 — Chat + Tâches"
+  application_02:
+    services: [files, edition_collaborative]
+    label: "Application02 — Files + Édition collaborative"
+
+standalone_nodes:
+  # Composants avec leur propre VM dédiée, jamais partagée, créés
+  # seulement si le service correspondant est sélectionné.
+  visio:
+    components: [videoconf]
+    zone: DMZ
+
+optional_components:
+  # Composants activés par une question dédiée du questionnaire, pas par
+  # la liste de services standard.
+  migration_factory:
+    prompt: "Y a-t-il une usine de migration sur l'infrastructure client ?"
+    default: false
+    count: 1
+    zone: LAN
+    temporary: true   # à retirer de l'infra après la migration — signalé comme tel dans le PDF

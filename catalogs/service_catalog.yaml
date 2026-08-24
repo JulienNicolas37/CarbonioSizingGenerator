@@ -1,0 +1,24 @@
+# catalogs/service_catalog.yaml
+# Correspondance service coché par le client (question de dimensionnement) -> composant(s)
+# Carbonio à activer. Emails/Calendrier/Contacts sont couverts par le socle minimum
+# (mailbox) et n'ont pas besoin d'entrée ici.
+
+chat:
+  components: [chat]
+  application_group: application_chat_tasks   # partage la VM "application_chat_tasks"
+
+tache:
+  components: [tasks]
+  application_group: application_chat_tasks   # partage la même VM que chat
+
+files:
+  components: [files]
+  application_group: application_files_docs   # partage la VM "application_files_docs"
+
+edition_collaborative:
+  components: [docs]
+  application_group: application_files_docs   # partage la même VM que files
+
+visio:
+  components: [videoconf]
+  application_group: null                     # VM dédiée en DMZ, jamais partagée

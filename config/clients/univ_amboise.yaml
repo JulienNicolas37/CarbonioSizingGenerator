@@ -1,0 +1,25 @@
+# config/clients/univ_amboise.yaml
+# Exemple : grosse infrastructure, tous services, stockage Objet, usine de
+# migration active. Client fictif (Université d'Amboise n'existe pas) —
+# repris du même nom d'exemple que le Générateur de DAT pour cohérence
+# entre les deux projets.
+
+client:
+  name: "Université d'Amboise"
+  domaines: 15
+  comptes: 25000
+  volumetrie_to: 40
+  stockage_objet: true
+
+services:
+  chat: true
+  tache: true
+  files: true
+  edition_collaborative: true
+  visio: true
+
+infra:
+  imap: true                   # comptes >= 20000 -> détermine le palier HA 3
+  migration_factory: true
+  ha_tier: auto
+  mailstore_count: auto

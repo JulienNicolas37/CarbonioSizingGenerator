@@ -1,0 +1,118 @@
+# catalogs/vm_catalog.yaml
+# Specs numériques uniquement. Descriptions/rôles : voir component_descriptions.yaml
+# Ids alignés strictement sur templates/components_catalog.yaml du Générateur de DAT.
+
+mesh:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 16
+  disk_os_gb: 30
+  disk_appli_gb: 160
+
+directory_master:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 16
+  disk_os_gb: 30
+  disk_appli_gb: 160
+
+directory_replica:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 16
+  disk_os_gb: 30
+  disk_appli_gb: 160
+
+database:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 16
+  disk_os_gb: 30
+  disk_appli_gb: 160
+
+mailbox:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 16
+  disk_os_gb: 30
+  disk_appli_gb: 500
+  disk_store_gb: 5000
+
+proxy:
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 60
+
+mta_in:
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 90
+
+mta_auth:
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 90
+
+mta_out:
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 90
+
+files:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 4
+  disk_os_gb: 30
+  disk_appli_gb: 20
+
+docs:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 4
+  disk_os_gb: 30
+  disk_appli_gb: 20
+
+chat:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 4
+  disk_os_gb: 30
+  disk_appli_gb: 20
+
+tasks:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 4
+  disk_os_gb: 30
+  disk_appli_gb: 20
+
+videoconf:
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 4
+  disk_os_gb: 30
+  disk_appli_gb: 100
+
+monitoring:
+  zone: LAN
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 50
+
+migration_factory:
+  # Composant optionnel — activé seulement si la question "usine de
+  # migration sur l'infra client ?" est répondue Oui (voir sizing_rules.yaml)
+  zone: LAN
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 500
