@@ -6,10 +6,10 @@ config/clients/*.yaml
 # Dossiers de génération (sorties/tex/pdf intermédiaires) jamais suivis
 build/*/generation/
 build/*/
-!build/client_exemple_petite/
-!build/univ_amboise/
-build/client_exemple_petite/generation/
-build/univ_amboise/generation/
+!build/client_exemple_petite_infra/
+!build/universite_d_amboise/
+build/client_exemple_petite_infra/generation/
+build/universite_d_amboise/generation/
 
 # Python
 __pycache__/

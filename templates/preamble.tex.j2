@@ -1,0 +1,59 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{Open Sans}
+\usepackage[french]{babel}
+\usepackage[a4paper,top=3.1cm,bottom=2.7cm,left=2.3cm,right=2.3cm,headheight=1.6cm,headsep=0.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, shapes.geometric}
+
+% ---------- Couleurs (identiques au Générateur de DAT) ----------
+\definecolor{primary}{HTML}{1F3864}
+\definecolor{accent}{HTML}{2E74B5}
+\definecolor{lightbg}{HTML}{DDEBF7}
+\definecolor{graytxt}{HTML}{595959}
+
+% ---------- Titres ----------
+\titleformat{\section}{\Large\bfseries\color{primary}}{\thesection}{0.6em}{}
+\titlespacing{\section}{0pt}{1.4em}{0.8em}
+\titleformat{\subsection}{\large\bfseries\color{accent}}{\thesubsection}{0.6em}{}
+\setcounter{secnumdepth}{2}
+
+% ---------- En-tête / pied de page (logos client + intégrateur) ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\BLOCK{ if client.logo_file }
+\fancyhead[L]{\includegraphics[height=1.1cm]{\VAR{ client.logo_file }}}
+\BLOCK{ else }
+\fancyhead[L]{\small\bfseries\color{graytxt}\VAR{ client.name }}
+\BLOCK{ endif }
+\fancyhead[R]{\includegraphics[height=1.1cm]{\VAR{ integrator.logo_file }}}
+\fancyfoot[L]{\small\color{graytxt}\VAR{ integrator.name } --- \VAR{ integrator.website }}
+\fancyfoot[R]{\small\color{graytxt}Page \thepage/\pageref{LastPage}}
+
+% ---------- En-tête de tableau réutilisable ----------
+\newcommand{\tblhead}[1]{\textcolor{white}{\textbf{#1}}}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  citecolor=accent,
+  urlcolor=accent,
+  pdftitle={Prérequis techniques - \VAR{ client.name }},
+  pdfauthor={\VAR{ auteur.nom }}
+}
+
+\sloppy

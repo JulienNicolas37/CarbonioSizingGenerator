@@ -1,0 +1,31 @@
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\BLOCK{ if client.logo_file }
+\includegraphics[height=3cm]{\VAR{ client.logo_file }}\par
+\vspace{1.2cm}
+\BLOCK{ endif }
+{\Huge\bfseries\color{primary} PRÉREQUIS TECHNIQUES\par}
+\vspace{0.8cm}
+{\LARGE\bfseries\color{accent} Dimensionnement d'infrastructure Zextras Carbonio\par}
+\vspace{3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|>{\columncolor{primary}\color{white}\bfseries}m{4.2cm}|m{9cm}|}
+\hline
+Client & \VAR{ client.name } \\
+\hline
+Prestataire & \VAR{ integrator.name } \\
+\hline
+Commercial en charge & \VAR{ commercial.nom } (\VAR{ commercial.role }) \\
+\hline
+Document généré par & \VAR{ auteur.nom } (\VAR{ auteur.role }) \\
+\hline
+Version du document & \VAR{ revisions[-1].version } \\
+\hline
+Date & \VAR{ revisions[-1].date } \\
+\hline
+Classification & \VAR{ client.classification } \\
+\hline
+\end{tabular}
+\end{titlepage}

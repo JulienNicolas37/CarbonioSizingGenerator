@@ -1,0 +1,21 @@
+# catalogs/team_directory.yaml
+# Annuaire des intervenants Zextras Services, référencés par id numérique
+# depuis une config client (commercial_id, auteur_id) — jamais retapés.
+
+1:
+  nom: "Julien NICOLAS"
+  role: "Ingénieur avant-vente"
+  email: "julien.nicolas@zextras.fr"
+  telephone: "06 69 40 25 96"
+
+2:
+  nom: "William SANTALIESTRA"
+  role: "Directeur d'agence"
+  email: "william.santaliestra@zextras.fr"
+  telephone: ""
+
+3:
+  nom: "Laurent FRANÇOISE"
+  role: "Directeur technique"
+  email: "laurent.francoise@zextras.fr"
+  telephone: ""

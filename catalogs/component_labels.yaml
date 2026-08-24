@@ -1,0 +1,20 @@
+# catalogs/component_labels.yaml
+# Libellés d'affichage courts pour le tableau des prérequis et le schéma
+# d'architecture. Repris du Générateur de DAT pour cohérence.
+
+mesh: "Mesh"
+directory_master: "LDAP Master"
+directory_replica: "LDAP Replica"
+database: "Database"
+mailbox: "Mailstore"
+proxy: "Proxy"
+mta_in: "MTA IN"
+mta_auth: "MTA AUTH"
+mta_out: "MTA OUT"
+files: "Files"
+docs: "Docs"
+chat: "Chat"
+videoconf: "Visioconférence"
+tasks: "Tasks"
+monitoring: "Monitoring"
+migration_factory: "Usine de migration"

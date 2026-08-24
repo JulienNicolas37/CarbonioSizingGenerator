@@ -1,25 +1,222 @@
-# config/clients/univ_amboise.yaml
-# Exemple : grosse infrastructure, tous services, stockage Objet, usine de
-# migration active. Client fictif (Université d'Amboise n'existe pas) —
-# repris du même nom d'exemple que le Générateur de DAT pour cohérence
-# entre les deux projets.
-
 client:
-  name: "Université d'Amboise"
+  name: Université d'Amboise
+  classification: Public/Client
   domaines: 15
   comptes: 25000
   volumetrie_to: 40
   stockage_objet: true
-
+revisions:
+- version: '1.0'
+  date: 24/08/2026
+  auteur_id: 1
+  commentaire: Première version
 services:
   chat: true
   tache: true
   files: true
   edition_collaborative: true
   visio: true
-
 infra:
-  imap: true                   # comptes >= 20000 -> détermine le palier HA 3
+  imap: true
   migration_factory: true
-  ha_tier: auto
-  mailstore_count: auto
+  ha_tier: 3
+  mailstore_count: 5
+  commercial_id: 2
+  auteur_id: 1
+nodes:
+- id: proxy01
+  zone: DMZ
+  components: &id001
+  - proxy
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 60
+- id: proxy02
+  zone: DMZ
+  components: *id001
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 60
+- id: mta_auth01
+  zone: DMZ
+  components: &id002
+  - mta_auth
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: mta_auth02
+  zone: DMZ
+  components: *id002
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: mta_in01
+  zone: DMZ
+  components: &id003
+  - mta_in
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: mta_in02
+  zone: DMZ
+  components: *id003
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: mta_out01
+  zone: DMZ
+  components: &id004
+  - mta_out
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: mta_out02
+  zone: DMZ
+  components: *id004
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 90
+- id: services01
+  zone: LAN
+  components:
+  - mesh
+  - directory_master
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: services02
+  zone: LAN
+  components:
+  - mesh
+  - directory_replica
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: services03
+  zone: LAN
+  components:
+  - mesh
+  - database
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: mailstore01
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: mailstore02
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: mailstore03
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: mailstore04
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: mailstore05
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: application01
+  zone: LAN
+  components:
+  - chat
+  - tasks
+  label: Application01 — Chat + Tâches
+  sizing:
+    vcpu: 4
+    ram_gb: 4
+    disk_os_gb: 30
+    disk_appli_gb: 20
+- id: application02
+  zone: LAN
+  components:
+  - files
+  - docs
+  label: Application02 — Files + Édition collaborative
+  sizing:
+    vcpu: 4
+    ram_gb: 4
+    disk_os_gb: 30
+    disk_appli_gb: 20
+- id: visio
+  zone: DMZ
+  components:
+  - videoconf
+  sizing:
+    vcpu: 4
+    ram_gb: 4
+    disk_os_gb: 30
+    disk_appli_gb: 100
+- id: migration_factory
+  zone: LAN
+  components:
+  - migration_factory
+  temporary: true
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 500
+infra_resolved:
+  ha_tier: 3
+  ha_tier_suggestion: 3
+  ha_tier_reason: 25000 comptes, IMAP direct activé
+  mailstore_count: 5
+  mailstore_count_suggestion: 5
+  mailstore_reason: '25000 comptes (stockage Objet actif : volumétrie non dimensionnante)'

@@ -1,22 +1,104 @@
-# config/clients/client_exemple_petite.yaml
-# Exemple : petite infrastructure (socle minimum, sans HA, mailstore unique)
-
 client:
-  name: "Client Exemple Petite Infra"
+  name: Client Exemple Petite Infra
+  classification: Public/Client
   domaines: 2
   comptes: 800
   volumetrie_to: 1.5
   stockage_objet: false
-
+revisions:
+- version: '1.0'
+  date: 24/08/2026
+  auteur_id: 1
+  commentaire: Première version
 services:
   chat: true
   tache: true
   files: false
   edition_collaborative: false
   visio: false
-
 infra:
-  imap: true                  # non déterminant ici (comptes < 20000)
+  imap: true
   migration_factory: false
-  ha_tier: auto                # "auto" | 0 | 1 | 2 | 3
-  mailstore_count: auto        # "auto" | entier explicite
+  ha_tier: 0
+  mailstore_count: 1
+  commercial_id: 1
+  auteur_id: 1
+nodes:
+- id: proxy_mta01
+  zone: DMZ
+  components: &id001
+  - proxy
+  - mta_in
+  - mta_auth
+  - mta_out
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 60
+- id: proxy_mta02
+  zone: DMZ
+  components: *id001
+  sizing:
+    vcpu: 4
+    ram_gb: 8
+    disk_os_gb: 30
+    disk_appli_gb: 60
+- id: services01
+  zone: LAN
+  components:
+  - mesh
+  - directory_master
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: services02
+  zone: LAN
+  components:
+  - mesh
+  - directory_replica
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: services03
+  zone: LAN
+  components:
+  - mesh
+  - database
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 160
+- id: mailstore01
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 4
+    ram_gb: 16
+    disk_os_gb: 30
+    disk_appli_gb: 500
+    disk_store_gb: 5000
+- id: application01
+  zone: LAN
+  components:
+  - chat
+  - tasks
+  label: Application01 — Chat + Tâches
+  sizing:
+    vcpu: 4
+    ram_gb: 4
+    disk_os_gb: 30
+    disk_appli_gb: 20
+infra_resolved:
+  ha_tier: 0
+  ha_tier_suggestion: 0
+  ha_tier_reason: 800 comptes
+  mailstore_count: 1
+  mailstore_count_suggestion: 1
+  mailstore_reason: 800 comptes / 1.5 To en stockage block

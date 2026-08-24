@@ -50,8 +50,12 @@ def save_client_config(path_str: str, config: dict) -> None:
 
 
 def slugify(name: str) -> str:
-    """Nom de fichier client à partir du nom (utilisé faute de --name)."""
-    keep = "".join(c if c.isalnum() else "_" for c in name.strip())
+    """Nom de fichier client à partir du nom (utilisé faute de --name).
+    Les accents sont retirés pour garder des noms de dossier/fichier ASCII
+    (cohérent avec les chemins relatifs LaTeX et les règles .gitignore)."""
+    import unicodedata
+    normalized = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    keep = "".join(c if c.isalnum() else "_" for c in normalized.strip())
     while "__" in keep:
         keep = keep.replace("__", "_")
     return keep.strip("_").lower()
