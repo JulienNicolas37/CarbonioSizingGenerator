@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 — Clarification latexmk
+- README et message d'erreur de `generate_pdf.py` : pointent maintenant explicitement vers
+  `sudo apt-get install latexmk` comme correctif le plus probable (paquet parfois absent même
+  quand texlive-latex-recommended est installé, selon la distribution)
+
 ## 0.3.1 — Correctifs et confort d'usage
 - `generate_sizing.py` : retrait de la question sur le chemin du logo client — ce champ reste dans le
   schéma (`client.logo`) mais se renseigne manuellement dans le YAML par la personne qui finalise le

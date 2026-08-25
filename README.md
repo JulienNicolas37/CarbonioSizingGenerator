@@ -14,9 +14,12 @@ pip install pyyaml questionary jinja2 --break-system-packages
 ```
 
 Dépendances système : une distribution LaTeX (TeX Live) avec `xelatex`
-(police Open Sans via `fontspec`), et les paquets `babel` (français),
-`tikz`, `adjustbox`, `longtable`, `colortbl`, `fancyhdr`, `lastpage`,
-`amssymb` (cases à cocher de la page Confidentialité).
+(police Open Sans via `fontspec`), `latexmk`, et les paquets `babel`
+(français), `tikz`, `adjustbox`, `longtable`, `colortbl`, `fancyhdr`,
+`lastpage`, `amssymb` (cases à cocher de la page Confidentialité).
+**`latexmk` est un paquet à part sur certaines distributions et n'est
+pas toujours installé automatiquement par `texlive-latex-recommended`
+— il est donc listé explicitement ci-dessous.**
 Sur Debian/Ubuntu :
 
 ```bash

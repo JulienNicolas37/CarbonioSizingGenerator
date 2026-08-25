@@ -309,10 +309,10 @@ def main():
     if args.compile:
         if shutil.which("latexmk") is None:
             print("Erreur : 'latexmk' n'est pas installé (ou pas dans le PATH).")
-            print("Installation (Debian/Ubuntu) :")
-            print("  apt-get install texlive-xetex texlive-latex-recommended \\")
-            print("                   texlive-latex-extra texlive-lang-french \\")
-            print("                   texlive-pictures fonts-open-sans")
+            print("Sur Debian/Ubuntu, ce paquet n'est pas toujours installé automatiquement")
+            print("avec texlive-latex-recommended — installez-le explicitement :")
+            print("  sudo apt-get install latexmk")
+            print("Si le problème persiste après installation, vérifiez avec : which latexmk")
             print(f"Le fichier .tex a bien été généré : {tex_path}")
             print("Vous pouvez le compiler manuellement une fois latexmk installé.")
             sys.exit(1)
