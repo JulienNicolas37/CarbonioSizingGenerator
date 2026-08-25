@@ -21,4 +21,4 @@ migration_factory: >
   VM temporaire utilisée le temps de la migration initiale, retirée ensuite.
   Attention constatée sur le terrain : nécessite parfois un OS et un
   formatage disque spécifiques (ex. Ubuntu 24.04 + disque Appli en XFS)
-  selon les outils de migration utilisés — à confirmer par client.
+  selon les outils de migration utilisés
