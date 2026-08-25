@@ -56,14 +56,6 @@ SERVICE_DISPLAY_LABELS = {
     "visio": "Visioconférence",
 }
 
-# Étiquette de fonction projet affichée dans la table des contacts Zextras
-# (chapitre Parties prenantes), distincte du rôle/titre de la personne.
-PROJECT_ROLE_LABELS = {
-    "commercial": "Commercial en charge",
-    "auteur": "Rédacteur du document",
-    "chef_projet": "Chef de projet",
-}
-
 
 def value_or_placeholder(value, label: str) -> str:
     """Repli visible (jamais bloquant) : \\placeholder{...} en LaTeX brut
@@ -97,7 +89,8 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     ]
 
     nodes = []
-    totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0, "disk_store_gb": 0}
+    totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0,
+              "disk_store_gb": 0, "disk_secondaire_gb": 0, "disk_backup_gb": 0}
     all_components_seen = []
     for n in client_config.get("nodes", []):
         sizing = n.get("sizing", {})
@@ -120,6 +113,8 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         totals["disk_os_gb"] += sizing.get("disk_os_gb", 0)
         totals["disk_appli_gb"] += sizing.get("disk_appli_gb", 0)
         totals["disk_store_gb"] += sizing.get("disk_store_gb", 0)
+        totals["disk_secondaire_gb"] += sizing.get("disk_secondaire_gb", 0)
+        totals["disk_backup_gb"] += sizing.get("disk_backup_gb", 0)
 
     # tikz_builder échappe lui-même les ids/labels : on lui passe les valeurs
     # BRUTES (pas celles déjà échappées pour le tableau LaTeX), sinon double
@@ -142,12 +137,17 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     services_display = "Messagerie, agenda et contacts (toujours inclus)"
     if active_services:
         services_display += ", " + ", ".join(active_services)
+    infra_raw = client_config.get("infra", {})
     besoins = {
         "domaines": client_raw.get("domaines", "[à préciser]"),
         "comptes": client_raw.get("comptes", "[à préciser]"),
         "volumetrie_to": client_raw.get("volumetrie_to", "[à préciser]"),
         "stockage_objet": "Oui" if client_raw.get("stockage_objet") else "Non",
         "services_display": escape_latex(services_display),
+        "hsm_active": infra_raw.get("hsm_active", False),
+        "retention_days": infra_raw.get("retention_days"),
+        "backups": infra_raw.get("backups", False),
+        "backup_sur_s3": infra_raw.get("backup_sur_s3", False),
     }
 
     # --- Confidentialité (chapitre 1) ---
@@ -161,14 +161,17 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         for label, description in CLASSIFICATION_LEVELS
     ]
 
-    # --- Périmètre du document (chapitre 1) : dérivé des composants
-    # réellement présents dans les nœuds, dans l'ordre du catalogue
-    # component_descriptions.yaml (ordre stable, pas l'ordre d'apparition).
-    perimetre_items = [
-        escape_latex(component_descriptions[comp_id])
-        for comp_id in component_descriptions
-        if comp_id in all_components_seen
-    ]
+    # --- Périmètre du document : liste des FONCTIONS utilisateur activées
+    # (pas des composants d'infra) — reprend catalogs/carbonio_functions.yaml,
+    # dans l'ordre du fichier, en ne gardant que celles pertinentes pour ce
+    # client (toujours incluses, ou conditionnées par un service coché).
+    services_cfg = client_config.get("services", {})
+    perimetre_items = []
+    for func in catalogs["carbonio_functions"].values():
+        if func.get("always") or services_cfg.get(func.get("service_key"), False):
+            perimetre_items.append(
+                escape_latex(func["label"]) + r" --- " + escape_latex(func["description"].strip())
+            )
 
     # --- Parties prenantes : côté client (chapitre 2) ---
     adresse_lines = client_raw.get("adresse") or []
@@ -206,16 +209,23 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     commercial = escaped_person(commercial_raw)
     auteur = escaped_person(auteur_raw)
 
+    # Table des contacts Zextras : dédupliquée (une même personne ne doit
+    # apparaître qu'une fois même si elle cumule plusieurs fonctions sur
+    # le projet), et n'affiche QUE son titre (pas de fonction projet /
+    # "Rédacteur du document" etc., sur demande).
     zextras_contacts = []
-    for key, person_raw in (("commercial", commercial_raw), ("auteur", auteur_raw), ("chef_projet", chef_projet_raw)):
-        if not person_raw.get("nom"):
+    seen_emails = set()
+    for person_raw in (commercial_raw, auteur_raw, chef_projet_raw):
+        nom = person_raw.get("nom")
+        if not nom:
             continue
-        fonction = PROJECT_ROLE_LABELS[key]
-        role_titre = person_raw.get("role", "")
-        role_display = f"{fonction} --- {role_titre}" if role_titre else fonction
+        dedup_key = person_raw.get("email") or nom
+        if dedup_key in seen_emails:
+            continue
+        seen_emails.add(dedup_key)
         zextras_contacts.append({
-            "nom": escape_latex(person_raw["nom"]),
-            "role": escape_latex(role_display),
+            "nom": escape_latex(nom),
+            "role": escape_latex(person_raw.get("role", "")),
             "email": escape_latex(person_raw.get("email", "")),
             "telephone": escape_latex(person_raw.get("telephone", "")),
         })
@@ -287,6 +297,7 @@ def main():
     catalogs = {
         "component_labels": load_yaml(CATALOGS_DIR / "component_labels.yaml"),
         "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
+        "carbonio_functions": load_yaml(CATALOGS_DIR / "carbonio_functions.yaml"),
     }
 
     if "nodes" not in client_config:

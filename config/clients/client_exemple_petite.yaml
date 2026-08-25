@@ -44,6 +44,10 @@ infra:
   migration_factory: false
   ha_tier: 0
   mailstore_count: 1
+  hsm_active: false
+  retention_days: null
+  backups: true
+  backup_sur_s3: false
 nodes:
 - id: proxy_mta01
   zone: DMZ
@@ -104,7 +108,8 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 1500
+    disk_backup_gb: 1950
 - id: application01
   zone: LAN
   components:

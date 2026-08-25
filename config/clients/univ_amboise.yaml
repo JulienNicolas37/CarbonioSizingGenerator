@@ -44,17 +44,17 @@ parties_prenantes:
       nom: William SANTALIESTRA
       role: Directeur d'agence
       email: william.santaliestra@zextras.fr
-      telephone: '+33 6 16 99 03 55'
+      telephone: +33 6 16 99 03 55
     auteur:
       nom: Julien NICOLAS
       role: Responsable de production
       email: julien.nicolas@zextras.fr
-      telephone: '+33 6 69 40 25 96'
+      telephone: +33 6 69 40 25 96
     chef_projet:
       nom: Sarah LAMBERT
       role: Cheffe de projet
       email: sarah.lambert@zextras.fr
-      telephone: '+33 6 89 99 84 69'
+      telephone: +33 6 89 99 84 69
 services:
   chat: true
   tache: true
@@ -66,6 +66,10 @@ infra:
   migration_factory: true
   ha_tier: 3
   mailstore_count: 5
+  hsm_active: true
+  retention_days: 10
+  backups: true
+  backup_sur_s3: true
 nodes:
 - id: proxy01
   zone: DMZ
@@ -174,7 +178,9 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 286
+    disk_secondaire_gb: 7714
+    disk_backup_gb: 10400
 - id: mailstore02
   zone: LAN
   components:
@@ -184,7 +190,9 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 286
+    disk_secondaire_gb: 7714
+    disk_backup_gb: 10400
 - id: mailstore03
   zone: LAN
   components:
@@ -194,7 +202,9 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 286
+    disk_secondaire_gb: 7714
+    disk_backup_gb: 10400
 - id: mailstore04
   zone: LAN
   components:
@@ -204,7 +214,9 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 286
+    disk_secondaire_gb: 7714
+    disk_backup_gb: 10400
 - id: mailstore05
   zone: LAN
   components:
@@ -214,7 +226,9 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 5000
+    disk_store_gb: 286
+    disk_secondaire_gb: 7714
+    disk_backup_gb: 10400
 - id: application01
   zone: LAN
   components:
@@ -262,4 +276,4 @@ infra_resolved:
   ha_tier_reason: 25000 comptes, IMAP direct activé
   mailstore_count: 5
   mailstore_count_suggestion: 5
-  mailstore_reason: '25000 comptes (stockage Objet actif : volumétrie non dimensionnante)'
+  mailstore_reason: '25000 comptes (stockage Objet + HSM actifs : volumétrie non dimensionnante)'

@@ -72,13 +72,16 @@ def suggest_ha_tier(comptes: int, imap: bool, sizing_rules: dict) -> HaSuggestio
 
 
 def suggest_mailstore_count(comptes: int, volumetrie_to: float, stockage_objet: bool,
-                             sizing_rules: dict) -> MailstoreSuggestion:
+                             hsm_active: bool, sizing_rules: dict) -> MailstoreSuggestion:
     rules = sizing_rules["mailstore_scaling"]
     by_accounts = math.ceil(comptes / rules["max_accounts_per_mailstore"]) if comptes > 0 else 1
 
-    if stockage_objet and rules.get("object_storage_ignores_volumetry", False):
+    # La volumétrie n'est ignorée pour le NOMBRE de mailstores que si les
+    # données sont effectivement déportées (Stockage Objet ET module HSM
+    # actif) — sans HSM, tout reste sur le stockage primaire.
+    if stockage_objet and hsm_active and rules.get("object_storage_ignores_volumetry", False):
         count = max(1, by_accounts)
-        reason = f"{comptes} comptes (stockage Objet actif : volumétrie non dimensionnante)"
+        reason = f"{comptes} comptes (stockage Objet + HSM actifs : volumétrie non dimensionnante)"
     else:
         by_volume = (math.ceil(volumetrie_to / rules["max_block_data_to_per_mailstore"])
                      if volumetrie_to > 0 else 1)
@@ -127,6 +130,54 @@ def _sizing_from_catalog(vm_catalog: dict, component_id: str) -> dict:
     return sizing
 
 
+def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_count: int,
+                              volumetrie_to: float, stockage_objet: bool, hsm_active: bool,
+                              retention_days: Optional[int], backups: bool) -> dict:
+    """
+    Dimensionnement disque d'un mailstore (identique pour tous les
+    mailstores du client — volumétrie moyenne, pas de répartition
+    différenciée) :
+      - volumétrie moyenne par mailstore = volumétrie totale / nombre de
+        mailstores, arrondie au demi-To supérieur ;
+      - si Stockage Objet + HSM actifs : stockage primaire dimensionné
+        pour la rétention demandée (200 Go pour 7 jours, mis à l'échelle
+        linéairement — voir hypothèse documentée dans sizing_rules.yaml),
+        le reste de la volumétrie moyenne part en secondaire (S3) ;
+      - sinon : tout reste en primaire (= volumétrie moyenne) ;
+      - si backups activés : 1,3x la taille cumulée primaire + secondaire.
+    """
+    base = vm_catalog["mailbox"]
+    rules = sizing_rules["mailstore_scaling"]["disque_par_mailstore"]
+
+    avg_to = volumetrie_to / mailstore_count if mailstore_count else volumetrie_to
+    avg_to_rounded = math.ceil(avg_to * 2) / 2  # arrondi au demi-To supérieur
+    avg_gb = avg_to_rounded * 1000
+
+    secondary_gb = 0
+    if stockage_objet and hsm_active:
+        retention = retention_days or rules["hsm_reference_retention_days"]
+        primary_gb = round(
+            rules["hsm_primary_gb_reference"] * retention / rules["hsm_reference_retention_days"]
+        )
+        secondary_gb = max(0, round(avg_gb - primary_gb))
+    else:
+        primary_gb = round(avg_gb)
+
+    sizing = {
+        "vcpu": base["vcpu"],
+        "ram_gb": base["ram_gb"],
+        "disk_os_gb": base["disk_os_gb"],
+        "disk_appli_gb": base["disk_appli_gb"],
+        "disk_store_gb": primary_gb,
+    }
+    if secondary_gb:
+        sizing["disk_secondaire_gb"] = secondary_gb
+    if backups:
+        sizing["disk_backup_gb"] = round(rules["backup_multiplier"] * (primary_gb + secondary_gb))
+
+    return sizing
+
+
 def build_nodes(client_config: dict, catalogs: dict,
                  ha_level_override: Optional[int] = None,
                  mailstore_count_override: Optional[int] = None) -> dict:
@@ -148,6 +199,9 @@ def build_nodes(client_config: dict, catalogs: dict,
     services = client_config.get("services", {})
     infra_in = client_config.get("infra", {})
     imap = infra_in.get("imap", True)
+    hsm_active = infra_in.get("hsm_active", False)
+    retention_days = infra_in.get("retention_days")
+    backups = infra_in.get("backups", False)
 
     nodes = []
     node_counters = {}
@@ -182,15 +236,19 @@ def build_nodes(client_config: dict, catalogs: dict,
         })
 
     # --- Mailstores ---
-    mailstore_suggestion = suggest_mailstore_count(comptes, volumetrie_to, stockage_objet, sizing_rules)
+    mailstore_suggestion = suggest_mailstore_count(comptes, volumetrie_to, stockage_objet, hsm_active, sizing_rules)
     mailstore_count = (mailstore_count_override if mailstore_count_override is not None
                        else mailstore_suggestion.count)
+    mailstore_sizing = compute_mailstore_sizing(
+        vm_catalog, sizing_rules, mailstore_count, volumetrie_to,
+        stockage_objet, hsm_active, retention_days, backups,
+    )
     for i in range(mailstore_count):
         nodes.append({
             "id": f"mailstore{i + 1:02d}",
             "zone": "LAN",
             "components": ["mailbox"],
-            "sizing": _sizing_from_catalog(vm_catalog, "mailbox"),
+            "sizing": dict(mailstore_sizing),
         })
 
     # --- Application01 / Application02 ---

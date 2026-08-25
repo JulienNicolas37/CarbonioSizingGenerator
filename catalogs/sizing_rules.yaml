@@ -118,10 +118,12 @@ mailstore_scaling:
   # supplémentaire).
   max_accounts_per_mailstore: 5000
   max_block_data_to_per_mailstore: 5
-  # Si stockage Objet activé : le stockage block n'est plus le facteur
-  # dimensionnant pour la volumétrie de données (seul le nombre de comptes
-  # compte pour déterminer le nombre de mailstores). Le disque "Store"
-  # de chaque mailstore reste au minimum défini dans vm_catalog.yaml.
+  # Si stockage Objet ACTIF ET module HSM ACTIVÉ : la donnée est
+  # effectivement déportée vers le stockage secondaire (S3), donc le
+  # stockage block n'est plus le facteur dimensionnant pour déterminer le
+  # NOMBRE de mailstores (seul le nombre de comptes compte). Sans HSM
+  # activé (même avec Stockage Objet coché), tout reste sur le stockage
+  # primaire : la règle de volumétrie s'applique normalement.
   object_storage_ignores_volumetry: true
 
   selection:
@@ -132,6 +134,26 @@ mailstore_scaling:
     # rétrospective finale (voir review_step ci-dessous).
     mode: "suggested_with_override"
     config_field: "infra.mailstore_count"   # "auto" (défaut) | entier explicite
+
+  disque_par_mailstore:
+    # Volumétrie moyenne par mailstore = volumétrie totale / nombre de
+    # mailstores, arrondie au demi-To supérieur — appliquée uniformément
+    # à chaque mailstore (pas de répartition différenciée).
+    round_to_half_tb: true
+
+    # --- Cas stockage Objet + HSM actif ---
+    # HYPOTHÈSE (à valider/ajuster) : le stockage primaire (block) est
+    # dimensionné pour tenir la rétention demandée, à raison de
+    # 200 Go pour 7 jours de rétention (soit ~28,6 Go/jour), mis à
+    # l'échelle linéairement si la rétention diffère. Le reste de la
+    # volumétrie moyenne part sur le stockage secondaire (S3 via HSM).
+    hsm_primary_gb_reference: 200
+    hsm_reference_retention_days: 7
+
+    # --- Backup (si activé) ---
+    # 1,3 fois la taille cumulée des stockages primaire + secondaire
+    # effectivement utilisés pour ce mailstore.
+    backup_multiplier: 1.3
 
 review_step:
   # Étape de fin de questionnaire (mode interactif uniquement) : récapitule

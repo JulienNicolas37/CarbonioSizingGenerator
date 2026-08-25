@@ -84,6 +84,24 @@ def run_interactive(catalogs: dict) -> dict:
     volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
     stockage_objet = questionary.confirm("Stockage Objet activé ?", default=False).ask()
 
+    hsm_active = False
+    retention_days = None
+    if stockage_objet:
+        hsm_active = questionary.confirm(
+            "Activer le module HSM (stockage secondaire S3) ?", default=True
+        ).ask()
+        if hsm_active:
+            retention_days = int(questionary.text(
+                "Rétention en jours à prévoir sur le stockage primaire :", default="7"
+            ).ask())
+
+    backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
+    backup_sur_s3 = False
+    if backups and stockage_objet:
+        backup_sur_s3 = questionary.confirm(
+            "Le backup sera-t-il également sur S3 ?", default=False
+        ).ask()
+
     print("\nServices à activer (email/calendrier/contacts sont toujours inclus) :")
     chat = questionary.confirm("Chat ?", default=False).ask()
     tache = questionary.confirm("Tâches ?", default=False).ask()
@@ -181,6 +199,10 @@ def run_interactive(catalogs: dict) -> dict:
             "migration_factory": migration_factory,
             "ha_tier": "auto",
             "mailstore_count": "auto",
+            "hsm_active": hsm_active,
+            "retention_days": retention_days,
+            "backups": backups,
+            "backup_sur_s3": backup_sur_s3,
         },
     }
     return client_config
@@ -208,7 +230,8 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
 
     mailstore_suggestion = suggest_mailstore_count(
         client["comptes"], client.get("volumetrie_to", 0),
-        client.get("stockage_objet", False), catalogs["sizing_rules"],
+        client.get("stockage_objet", False), infra.get("hsm_active", False),
+        catalogs["sizing_rules"],
     )
     mailstore_count_override = interactive_mailstore_choice(
         mailstore_suggestion.count, mailstore_suggestion.reason

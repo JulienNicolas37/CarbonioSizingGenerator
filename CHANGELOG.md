@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.5.0 — Stockage Objet/HSM, backups, périmètre fonctionnel
+- **Nouvelles questions (dans l'ordre)** : après "Stockage Objet activé ?" -> "Activer le module HSM
+  (stockage secondaire S3) ?" (si Stockage Objet), puis si HSM actif "Rétention en jours sur le
+  stockage primaire ?" (défaut 7) ; puis "Mettre en place des backups ?" (juste après la question S3),
+  et si backups + Stockage Objet -> "Le backup sera-t-il également sur S3 ?"
+- **Nouveau calcul de dimensionnement disque par mailstore** :
+  - Volumétrie moyenne par mailstore = volumétrie totale / nombre de mailstores, arrondie au
+    demi-To supérieur (remplace l'ancienne valeur fixe de 5000 Go issue du catalogue).
+  - Si Stockage Objet + HSM actifs : stockage primaire dimensionné pour la rétention demandée
+    (HYPOTHÈSE : 200 Go pour 7 jours de référence, mis à l'échelle linéairement — voir
+    `sizing_rules.yaml`), le reste de la volumétrie moyenne part en secondaire (S3).
+  - Si backups activés : 1,3x la taille cumulée primaire + secondaire.
+  - Le seuil qui ignore la volumétrie pour le NOMBRE de mailstores ne s'applique plus sur
+    Stockage Objet seul, mais sur Stockage Objet ET HSM actifs (sans HSM, tout reste sur le
+    stockage primaire, donc la volumétrie redevient dimensionnante pour le nombre de mailstores).
+  - Tableau des prérequis : 2 nouvelles colonnes ("Secondaire (S3)", "Backup"), toujours affichées
+    avec repli "---" si non applicable ; police réduite (\small) pour absorber les 10 colonnes.
+- **Périmètre du document** entièrement revu : remplace la liste technique de composants
+  d'infrastructure par la liste des FONCTIONS utilisateur activées (Messagerie, Agenda, Contacts,
+  Chat, Tâches, Fichiers, Édition collaborative, Visioconférence), reprise et condensée du chapitre
+  "Services rendus aux utilisateurs" du Générateur de DAT — nouveau catalogue
+  `catalogs/carbonio_functions.yaml`.
+- **Table des contacts Zextras** : dédupliquée (une même personne n'apparaît plus qu'une fois même
+  si elle cumule plusieurs fonctions projet), n'affiche plus que son titre (plus de "Commercial en
+  charge —"/"Rédacteur du document —" etc.) ; police réduite et colonne e-mail élargie pour éviter
+  le débordement (ex. avec des e-mails plus longs comme celui de Maxime Sautière ou William
+  Santaliestra). Même traitement appliqué à la table des contacts client, par cohérence.
+- "Récapitulatif des besoins exprimés" mentionne désormais HSM/rétention/backups quand pertinent.
+
 ## 0.4.0 — Réorganisation du fichier de configuration
 - **Fusion des sections "client"** : toutes les informations relatives au client (identité,
   dimensionnement, parties prenantes) vivent maintenant sous une seule clé

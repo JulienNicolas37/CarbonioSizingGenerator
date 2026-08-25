@@ -1,0 +1,71 @@
+# catalogs/carbonio_functions.yaml
+# Fonctions utilisateur de la solution Carbonio, pour la section
+# "Périmètre du document". Repris (condensé) du chapitre "Services
+# rendus aux utilisateurs" du Générateur de DAT, pour cohérence entre
+# les deux projets.
+#
+# "always: true" -> toujours listé (socle messagerie/agenda/contacts).
+# "service_key" -> n'est listé que si ce service est coché dans la
+# config client (clé "services").
+
+messagerie:
+  label: "Messagerie électronique"
+  description: >
+    Chaque utilisateur dispose d'une boîte aux lettres complète
+    accessible depuis un navigateur, un client de messagerie ou un
+    smartphone, avec recherche, dossiers, règles de filtrage et
+    signatures natives.
+  always: true
+
+agenda:
+  label: "Agenda"
+  description: >
+    Agenda personnel et agendas partagés pour organiser des réunions,
+    consulter la disponibilité des collègues et réserver des ressources,
+    avec synchronisation mobile.
+  always: true
+
+contacts:
+  label: "Contacts"
+  description: >
+    Carnet d'adresses personnel et annuaire d'entreprise partagé,
+    accessibles depuis tous les clients de messagerie.
+  always: true
+
+chat:
+  label: "Chat"
+  description: >
+    Messagerie instantanée d'entreprise pour des échanges en 1:1 ou en
+    groupe, avec historique et notifications, intégrée à la même
+    plateforme que la messagerie électronique.
+  service_key: chat
+
+tache:
+  label: "Tâches"
+  description: >
+    Listes de tâches personnelles ou partagées, avec échéances et
+    rappels, intégrées au webmail et à l'agenda.
+  service_key: tache
+
+files:
+  label: "Fichiers"
+  description: >
+    Espace de stockage et de partage de fichiers, permettant d'envoyer
+    des pièces jointes volumineuses sous forme de lien plutôt qu'en
+    pièce jointe, et de collaborer à plusieurs sur un même dossier.
+  service_key: files
+
+edition_collaborative:
+  label: "Édition collaborative"
+  description: >
+    Documents bureautiques (texte, tableur, présentation) édités
+    directement dans le navigateur, à plusieurs simultanément, sans
+    suite bureautique à installer sur le poste de travail.
+  service_key: edition_collaborative
+
+visio:
+  label: "Visioconférence"
+  description: >
+    Réunions vidéo organisées et rejointes directement depuis l'agenda
+    ou le Chat, sans dépendre d'un outil de visioconférence tiers.
+  service_key: visio
