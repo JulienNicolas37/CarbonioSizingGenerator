@@ -1,0 +1,10 @@
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+\BLOCK{ for contact in zextras_contacts }
+\VAR{ contact.nom } & \VAR{ contact.role } & \VAR{ contact.email } & \VAR{ contact.telephone } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}

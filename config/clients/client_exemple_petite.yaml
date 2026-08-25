@@ -1,15 +1,16 @@
-client:
-  name: Client Exemple Petite Infra
-  classification: Public/Client
-  domaines: 2
-  comptes: 800
-  volumetrie_to: 1.5
-  stockage_objet: false
 revisions:
 - version: '1.0'
   date: 24/08/2026
   auteur_id: 1
   commentaire: Première version
+client:
+  name: Client Exemple Petite Infra
+  classification: Client
+  logo: null
+  domaines: 2
+  comptes: 800
+  volumetrie_to: 1.5
+  stockage_objet: false
 services:
   chat: true
   tache: true
@@ -23,6 +24,13 @@ infra:
   mailstore_count: 1
   commercial_id: 1
   auteur_id: 1
+parties_prenantes:
+  client:
+    description: null
+    site_web: null
+    adresse: []
+    telephone_urgence: null
+    contacts: []
 nodes:
 - id: proxy_mta01
   zone: DMZ

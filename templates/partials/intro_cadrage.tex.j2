@@ -1,0 +1,49 @@
+\chapter{Introduction et cadrage}
+
+\section{Objet du document}
+Ce document décrit les prérequis techniques et le dimensionnement
+proposé pour l'infrastructure de messagerie collaborative Zextras
+Carbonio de \VAR{ client.name }. Il a pour vocation de servir de base
+de discussion technique entre \VAR{ integrator.name } et le client, en
+amont du déploiement du projet.
+
+\section{Rappel des besoins exprimés}
+Ce dimensionnement a été établi à partir des éléments suivants,
+communiqués par le client~:
+\begin{itemize}[nosep]
+  \item Nombre de domaines de messagerie~: \VAR{ besoins.domaines }
+  \item Nombre de comptes~: \VAR{ besoins.comptes }
+  \item Volumétrie totale de données~: \VAR{ besoins.volumetrie_to } To
+  \item Stockage Objet~: \VAR{ besoins.stockage_objet }
+  \item Services demandés~: \VAR{ besoins.services_display }
+\end{itemize}
+
+\section{Confidentialité}
+\begin{longtable}{|p{1cm}|p{2.5cm}|p{9.5cm}|}
+\hline
+\endhead
+\BLOCK{ for niveau in classification_niveaux }
+\VAR{ niveau.case } & \VAR{ niveau.label } & \VAR{ niveau.description } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+
+\section{Propriété intellectuelle et usage autorisé}
+Ce document est produit par \VAR{ integrator.name } à l'usage exclusif
+de \VAR{ client.name } dans le cadre de l'étude de dimensionnement de
+son infrastructure Carbonio. Il contient des informations propres à ce
+projet et revêt à ce titre la classification indiquée ci-dessus.
+
+Toute autre utilisation, reproduction, diffusion à des tiers ou
+exploitation à des fins autres que celles pour lesquelles il a été
+produit est interdite sans l'accord préalable écrit de
+\VAR{ integrator.name }.
+
+\section{Périmètre du document}
+Sont couverts par le présent document, sur la base des services
+retenus pour ce client~:
+\begin{itemize}[nosep]
+\BLOCK{ for item in perimetre_items }
+  \item \VAR{ item }
+\BLOCK{ endfor }
+\end{itemize}

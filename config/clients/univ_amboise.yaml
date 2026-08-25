@@ -1,15 +1,16 @@
-client:
-  name: Université d'Amboise
-  classification: Public/Client
-  domaines: 15
-  comptes: 25000
-  volumetrie_to: 40
-  stockage_objet: true
 revisions:
 - version: '1.0'
   date: 24/08/2026
   auteur_id: 1
   commentaire: Première version
+client:
+  name: Université d'Amboise
+  classification: Client
+  logo: assets/univ_amboise_logo.png
+  domaines: 15
+  comptes: 25000
+  volumetrie_to: 40
+  stockage_objet: true
 services:
   chat: true
   tache: true
@@ -23,6 +24,35 @@ infra:
   mailstore_count: 5
   commercial_id: 2
   auteur_id: 1
+parties_prenantes:
+  client:
+    description: 'Université d''Amboise (fictive) — établissement d''enseignement
+      supérieur utilisé comme cas d''exemple d''infrastructure haute disponibilité,
+      avec une population mixte personnel/étudiants (deux domaines de messagerie distincts).
+
+      '
+    site_web: https://www.univ-amboise.fr
+    adresse:
+    - Place du Château
+    - 37400 Amboise
+    telephone_urgence: +33 2 47 00 00 00
+    contacts:
+    - nom: Sophie Durand
+      role: Responsable de projet
+      email: sophie.durand@univ-amboise.fr
+      telephone: +33 2 47 00 00 01
+    - nom: Marc Lefèvre
+      role: Responsable technique
+      email: marc.lefevre@univ-amboise.fr
+      telephone: +33 2 47 00 00 02
+    - nom: Amina Kaced
+      role: Intervenant technique
+      email: amina.kaced@univ-amboise.fr
+      telephone: ''
+    - nom: Thomas Roux
+      role: Intervenant technique
+      email: thomas.roux@univ-amboise.fr
+      telephone: ''
 nodes:
 - id: proxy01
   zone: DMZ

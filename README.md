@@ -58,23 +58,38 @@ config/clients/               # UN fichier YAML par client (gitignored sauf les 
   univ_amboise.yaml           # grosse infra fictive, palier 3, 5 mailstores, tous services
 
 templates/
-  preamble.tex.j2              # en-tête LaTeX (police, couleurs, logos) — repris du DAT generator
-  prestataire.tex               # infos Zextras Services STATIQUES (pas de Jinja, \input tel quel)
+  preamble.tex.j2              # en-tête LaTeX (classe report, chapitres, couleurs, logos)
+  prestataire.tex               # section "Intégrateur" STATIQUE (pas de Jinja, inséré tel quel)
+  carbonio_solution.tex          # chapitre 3 STATIQUE (présentation générale Carbonio)
   partials/
     cover.tex.j2                 # page de garde (commercial/auteur résolus depuis team_directory)
-    revisions.tex.j2             # historique des révisions
-    prerequis.tex.j2             # tableau des prérequis + ligne de totaux
-    architecture.tex.j2          # schéma DMZ/LAN (via tikz_builder.py, sans flux)
+    revisions.tex.j2              # historique des révisions (chapter*)
+    intro_cadrage.tex.j2          # chapitre 1 : objet, rappel des besoins, confidentialité, périmètre
+    parties_prenantes_client.tex.j2  # chapitre 2, section client (placeholders si non renseigné)
+    zextras_contacts.tex.j2       # tableau de contacts Zextras (depuis team_directory.yaml)
+    prerequis.tex.j2              # chapitre 4 : tableau des prérequis + ligne de totaux
+    architecture.tex.j2           # schéma DMZ/LAN (via tikz_builder.py, sans flux)
   assets/logo_zextras_services.png
 
 src/
-  config_loader.py            # chargement catalogues + configs client
-  sizing_engine.py             # cœur de calcul, aucune dépendance LaTeX
-  generate_sizing.py           # CLI dimensionnement (interactif ou --client)
-  latex_utils.py                # échappement LaTeX + environnement Jinja2 (délimiteurs \BLOCK{}/\VAR{})
-  tikz_builder.py               # génère le schéma TikZ (repris du Générateur de DAT)
-  generate_pdf.py               # CLI génération du document (LaTeX + PDF)
+  config_loader.py             # chargement catalogues + configs client
+  sizing_engine.py              # cœur de calcul, aucune dépendance LaTeX
+  generate_sizing.py            # CLI dimensionnement (interactif ou --client)
+  latex_utils.py                 # échappement LaTeX + environnement Jinja2 (délimiteurs \BLOCK{}/\VAR{})
+  tikz_builder.py                # génère le schéma TikZ (repris du Générateur de DAT)
+  generate_pdf.py                # CLI génération du document (LaTeX + PDF)
 ```
+
+## Structure du document généré
+
+1. Page de garde
+2. Historique des révisions
+3. Sommaire
+4. Chapitre 1 — Introduction et cadrage (objet, rappel des besoins exprimés, confidentialité,
+   propriété intellectuelle, périmètre du document)
+5. Chapitre 2 — Parties prenantes (client, intégrateur)
+6. Chapitre 3 — Solution Zextras Carbonio (présentation générale)
+7. Chapitre 4 — Prérequis techniques (tableau + schéma d'architecture)
 
 ## Deux exemples fournis
 
@@ -109,8 +124,7 @@ fichier.
 
 ## Ce qui manque volontairement pour l'instant
 
-- Logo client (le champ `client.logo` existe dans le schéma mais n'a pas
-  encore été testé avec un vrai fichier).
-- Prise en compte du niveau de service (Community/Advanced), du SLA, ou
-  d'autres chapitres du DAT complet — ce document reste volontairement un
-  récapitulatif de prérequis, pas un DAT.
+- Contacts client (chapitre 2) : le schéma existe (`parties_prenantes.client`) mais n'est pas
+  demandé en interactif — à compléter manuellement dans le YAML, sinon replis "[à préciser]" visibles.
+- Prise en compte du niveau de service (Community/Advanced), du SLA, ou d'autres chapitres du DAT
+  complet — ce document reste volontairement un récapitulatif de prérequis, pas un DAT.

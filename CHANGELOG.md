@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 — Structure DAT-like (chapitres, sommaire, parties prenantes)
+- Passage de la classe LaTeX `article` à `report` : chapitres numérotés, sommaire (`\tableofcontents`),
+  pied de page actif seulement à partir du chapitre 1 (comme le Générateur de DAT)
+- Nouveau chapitre 1 "Introduction et cadrage" : Objet du document, **Rappel des besoins exprimés**
+  (domaines/comptes/volumétrie/stockage Objet/services — restitue les réponses au questionnaire),
+  Confidentialité (4 niveaux avec cases à cocher : Public/Client/Restreint/Confidentiel, remplace
+  l'ancienne valeur unique "Public/Client"), Propriété intellectuelle, Périmètre du document
+  (liste dérivée automatiquement des composants réellement présents, via component_descriptions.yaml)
+- Nouveau chapitre 2 "Parties prenantes" : section Client (description/site web/adresse multi-ligne/
+  téléphone/contacts — champs prévus dans le schéma mais PAS demandés en interactif, replis
+  "[à préciser]" visibles sinon) et section Intégrateur (Zextras Services, contenu enrichi, adresse
+  multi-ligne, tableau de contacts = tout `team_directory.yaml`)
+- Nouveau chapitre 3 "Solution Zextras Carbonio" : présentation générale reprise du DAT (version
+  légère, sans tableaux Version déployée/Licence, non pertinents en phase de dimensionnement)
+- Chapitre 4 : Prérequis techniques + schéma (contenu existant, renuméroté)
+- `client.logo` : chemin vers le logo client posé sur la page de garde (testé avec un vrai fichier
+  sur l'exemple Université d'Amboise)
+- `revisions:` déplacé en première clé des fichiers de config client (mise à jour la plus fréquente
+  = la plus facile à retrouver), y compris en le réordonnant automatiquement à chaque sauvegarde
+- Correctif : ajout du package `amssymb` manquant (nécessaire pour les cases à cocher $\square$/$\boxtimes$)
+- Exemple Université d'Amboise enrichi : contacts et adresse repris du Générateur de DAT (cohérence
+  entre les deux projets), logo client placeholder ajouté
+
 ## 0.2.1 — Correctifs
 - `generate_pdf.py` : message d'erreur clair (installation à faire) si `latexmk` est absent du PATH,
   au lieu d'un traceback Python brut
@@ -39,5 +62,4 @@
 - .gitignore protégeant les configs clients réelles et les dossiers de génération
 
 À venir :
-- Logo client (champ prévu, pas encore testé avec un vrai fichier)
-- Éventuel chapitre "Solution Zextras Carbonio" (édition/version produit) si besoin exprimé
+- Éventuel enrichissement du "Rappel des besoins exprimés" / "Périmètre" selon retours d'usage

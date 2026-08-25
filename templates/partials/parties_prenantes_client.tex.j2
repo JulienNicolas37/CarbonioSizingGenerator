@@ -1,0 +1,25 @@
+\chapter{Parties prenantes}
+
+\section{Client --- \VAR{ client.name }}
+\VAR{ parties_prenantes.client.description }
+
+\begin{itemize}[nosep]
+  \item Site web~: \VAR{ parties_prenantes.client.site_web }
+  \item Adresse~: \VAR{ parties_prenantes.client.adresse }
+  \item Téléphone d'urgence~: \VAR{ parties_prenantes.client.telephone_urgence }
+\end{itemize}
+
+\BLOCK{ if parties_prenantes.client.contacts }
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+\BLOCK{ for contact in parties_prenantes.client.contacts }
+\VAR{ contact.nom } & \VAR{ contact.role } & \VAR{ contact.email } & \VAR{ contact.telephone } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ else }
+\placeholder{Contacts client à compléter}
+\BLOCK{ endif }

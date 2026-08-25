@@ -65,6 +65,15 @@ def run_interactive(catalogs: dict) -> dict:
     print("=== Nouveau dimensionnement Carbonio ===\n")
 
     name = questionary.text("Nom du client :").ask()
+    classification = questionary.select(
+        "Classification du document :",
+        choices=["Public", "Client", "Restreint", "Confidentiel"],
+        default="Client",
+    ).ask()
+    logo = questionary.text(
+        "Chemin vers le logo client (optionnel, chemin relatif à ce fichier de config, laisser vide si aucun) :",
+        default="",
+    ).ask()
     domaines = int(questionary.text("Nombre de domaines :", default="1").ask())
     comptes = int(questionary.text("Nombre de comptes :").ask())
     volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
@@ -95,10 +104,21 @@ def run_interactive(catalogs: dict) -> dict:
     commercial_id = questionary.select("Commercial en charge :", choices=team_choices).ask()
     auteur_id = questionary.select("Qui génère ce document ?", choices=team_choices).ask()
 
+    # L'historique des révisions est placé en PREMIÈRE clé du fichier —
+    # c'est la partie qu'on doit mettre à jour le plus souvent (nouvelle
+    # version du document), donc la plus simple à retrouver en tête de
+    # fichier.
     client_config = {
+        "revisions": [{
+            "version": "1.0",
+            "date": date.today().strftime("%d/%m/%Y"),
+            "auteur_id": auteur_id,
+            "commentaire": "Première version",
+        }],
         "client": {
             "name": name,
-            "classification": "Public/Client",
+            "classification": classification,
+            "logo": logo or None,
             "domaines": domaines,
             "comptes": comptes,
             "volumetrie_to": volumetrie_to,
@@ -119,12 +139,19 @@ def run_interactive(catalogs: dict) -> dict:
             "commercial_id": commercial_id,
             "auteur_id": auteur_id,
         },
-        "revisions": [{
-            "version": "1.0",
-            "date": date.today().strftime("%d/%m/%Y"),
-            "auteur_id": auteur_id,
-            "commentaire": "Première version",
-        }],
+        # Chapitre "Parties prenantes" côté client : structure prévue mais
+        # PAS demandée en interactif (à compléter manuellement plus tard,
+        # voir README). Tant que ces champs sont vides, le document affiche
+        # des repères "[à préciser]" plutôt que de bloquer.
+        "parties_prenantes": {
+            "client": {
+                "description": None,
+                "site_web": None,
+                "adresse": [],
+                "telephone_urgence": None,
+                "contacts": [],
+            },
+        },
     }
     return client_config
 
@@ -194,6 +221,12 @@ def main():
     # (--client) sans repasser par la rétrospective reproduise le même résultat.
     client_config["infra"]["ha_tier"] = result["infra_resolved"]["ha_tier"]
     client_config["infra"]["mailstore_count"] = result["infra_resolved"]["mailstore_count"]
+
+    # "revisions" toujours en première clé du fichier (mise à jour la plus
+    # fréquente = doit être la plus facile à retrouver), quel que soit
+    # l'ordre d'origine du fichier relu en --client.
+    if "revisions" in client_config:
+        client_config = {"revisions": client_config.pop("revisions"), **client_config}
 
     save_client_config(output_path, client_config)
     print(f"Config client écrite : {output_path}")

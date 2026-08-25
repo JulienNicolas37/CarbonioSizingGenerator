@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-generate_pdf.py — Génère le document de récapitulatif (prérequis
+generate_pdf.py — Génère le document de prérequis techniques (page de
+garde, historique des révisions, sommaire, introduction et cadrage,
+parties prenantes, présentation de la solution Carbonio, prérequis
 techniques + schéma d'architecture) au format LaTeX/PDF, à partir d'une
 config client déjà dimensionnée (contenant nodes:, voir generate_sizing.py).
 
@@ -35,6 +37,25 @@ DEFAULT_INTEGRATOR = {
     "logo_file": "assets/logo_zextras_services.png",
 }
 
+# 4 niveaux de classification, mêmes libellés que le Générateur de DAT.
+CLASSIFICATION_LEVELS = [
+    ("Public", "Le contenu de ce document et de ses annexes peut être diffusé librement sans restriction."),
+    ("Client", "Le contenu de ce document et de ses annexes est strictement confidentiel et ne peut être diffusé en dehors des intervenants directs."),
+    ("Restreint", "Le contenu de ce document et de ses annexes est strictement confidentiel et est réservé uniquement aux collaborateurs de ZEXTRAS SERVICES."),
+    ("Confidentiel", "Le contenu de ce document et de ses annexes est strictement confidentiel et est réservé uniquement aux collaborateurs de ZEXTRAS SERVICES identifiés ci-dessous."),
+]
+
+# Libellés d'affichage des services cochés (config client, clé "services"),
+# pour le "Rappel des besoins exprimés" — email/calendrier/contacts sont
+# toujours inclus et affichés à part.
+SERVICE_DISPLAY_LABELS = {
+    "chat": "Chat",
+    "tache": "Tâches",
+    "files": "Files",
+    "edition_collaborative": "Édition collaborative",
+    "visio": "Visioconférence",
+}
+
 
 def lookup_person(team_directory: dict, person_id) -> dict:
     if person_id is None:
@@ -45,9 +66,18 @@ def lookup_person(team_directory: dict, person_id) -> dict:
     return {"nom": entry["nom"], "role": entry.get("role", "")}
 
 
+def value_or_placeholder(value, label: str) -> str:
+    """Repli visible (jamais bloquant) : \\placeholder{...} en LaTeX brut
+    si la donnée est absente, sinon la valeur échappée."""
+    if value in (None, "", [], {}):
+        return r"\placeholder{" + escape_latex(label) + "}"
+    return escape_latex(value)
+
+
 def build_context(client_config: dict, catalogs: dict) -> dict:
     team_directory = catalogs["team_directory"]
     component_labels = catalogs["component_labels"]
+    component_descriptions = catalogs["component_descriptions"]
 
     client = client_config["client"]
     commercial = lookup_person(team_directory, client_config.get("infra", {}).get("commercial_id"))
@@ -68,6 +98,7 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
 
     nodes = []
     totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0, "disk_store_gb": 0}
+    all_components_seen = []
     for n in client_config.get("nodes", []):
         sizing = n.get("sizing", {})
         components_display = ", ".join(
@@ -81,6 +112,9 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
             "components_display_diagram": components_display,  # utilisé tel quel par tikz_builder (police \scriptsize)
             "sizing": sizing,
         })
+        for c in n.get("components", []):
+            if c not in all_components_seen:
+                all_components_seen.append(c)
         totals["vcpu"] += sizing.get("vcpu", 0)
         totals["ram_gb"] += sizing.get("ram_gb", 0)
         totals["disk_os_gb"] += sizing.get("disk_os_gb", 0)
@@ -102,10 +136,77 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[],
     )
 
+    # --- Rappel des besoins exprimés (chapitre 1) ---
+    active_services = [SERVICE_DISPLAY_LABELS[s] for s, v in client_config.get("services", {}).items()
+                        if v and s in SERVICE_DISPLAY_LABELS]
+    services_display = "Messagerie, agenda et contacts (toujours inclus)"
+    if active_services:
+        services_display += ", " + ", ".join(active_services)
+    besoins = {
+        "domaines": client.get("domaines", "[à préciser]"),
+        "comptes": client.get("comptes", "[à préciser]"),
+        "volumetrie_to": client.get("volumetrie_to", "[à préciser]"),
+        "stockage_objet": "Oui" if client.get("stockage_objet") else "Non",
+        "services_display": escape_latex(services_display),
+    }
+
+    # --- Confidentialité (chapitre 1) ---
+    classification_actuelle = client.get("classification", "Client")
+    classification_niveaux = [
+        {
+            "case": r"$\boxtimes$" if label == classification_actuelle else r"$\square$",
+            "label": escape_latex(label),
+            "description": escape_latex(description),
+        }
+        for label, description in CLASSIFICATION_LEVELS
+    ]
+
+    # --- Périmètre du document (chapitre 1) : dérivé des composants
+    # réellement présents dans les nœuds, dans l'ordre du catalogue
+    # component_descriptions.yaml (ordre stable, pas l'ordre d'apparition).
+    perimetre_items = [
+        escape_latex(component_descriptions[comp_id])
+        for comp_id in component_descriptions
+        if comp_id in all_components_seen
+    ]
+
+    # --- Parties prenantes : côté client (chapitre 2) ---
+    pp_client_cfg = client_config.get("parties_prenantes", {}).get("client", {})
+    adresse_lines = pp_client_cfg.get("adresse") or []
+    adresse_display = r"\\".join(escape_latex(line) for line in adresse_lines) if adresse_lines else None
+    contacts = []
+    for c in pp_client_cfg.get("contacts", []):
+        contacts.append({
+            "nom": escape_latex(c.get("nom", "")),
+            "role": escape_latex(c.get("role", "")),
+            "email": escape_latex(c.get("email", "")),
+            "telephone": escape_latex(c.get("telephone", "")),
+        })
+    parties_prenantes = {
+        "client": {
+            "description": value_or_placeholder(pp_client_cfg.get("description"), "Description du client à compléter"),
+            "site_web": value_or_placeholder(pp_client_cfg.get("site_web"), "Site web à préciser"),
+            "adresse": adresse_display or r"\placeholder{Adresse à préciser}",
+            "telephone_urgence": value_or_placeholder(pp_client_cfg.get("telephone_urgence"), "Téléphone d'urgence à préciser"),
+            "contacts": contacts,
+        }
+    }
+
+    # --- Contacts Zextras (chapitre 2) : tout l'annuaire, tel quel ---
+    zextras_contacts = [
+        {
+            "nom": escape_latex(entry["nom"]),
+            "role": escape_latex(entry.get("role", "")),
+            "email": escape_latex(entry.get("email", "")),
+            "telephone": escape_latex(entry.get("telephone", "")),
+        }
+        for entry in team_directory.values()
+    ]
+
     return {
         "client": {
             "name": escape_latex(client["name"]),
-            "classification": escape_latex(client.get("classification", "Public/Client")),
+            "classification": escape_latex(classification_actuelle),
             "logo_file": client.get("logo_file"),
         },
         "integrator": DEFAULT_INTEGRATOR,
@@ -115,6 +216,11 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "nodes": nodes,
         "totals": totals,
         "diagram_tikz_raw": diagram_tikz_raw,   # LaTeX déjà généré : jamais échappé
+        "besoins": besoins,
+        "classification_niveaux": classification_niveaux,
+        "perimetre_items": perimetre_items,
+        "parties_prenantes": parties_prenantes,
+        "zextras_contacts": zextras_contacts,
     }
 
 
@@ -123,16 +229,36 @@ def render_document(ctx: dict) -> str:
     preamble = env.get_template("preamble.tex.j2").render(**ctx)
     cover = env.get_template("cover.tex.j2").render(**ctx)
     revisions = env.get_template("revisions.tex.j2").render(**ctx)
+    intro_cadrage = env.get_template("intro_cadrage.tex.j2").render(**ctx)
+    parties_prenantes_client = env.get_template("parties_prenantes_client.tex.j2").render(**ctx)
     prestataire = (TEMPLATES_DIR / "prestataire.tex").read_text(encoding="utf-8")  # statique, jamais rendu
+    zextras_contacts = env.get_template("zextras_contacts.tex.j2").render(**ctx)
+    carbonio_solution = (TEMPLATES_DIR / "carbonio_solution.tex").read_text(encoding="utf-8")  # statique
     prerequis = env.get_template("prerequis.tex.j2").render(**ctx)
     architecture = env.get_template("architecture.tex.j2").render(**ctx)
+
+    # Pied de page (nom prestataire + pagination) activé seulement à partir
+    # du chapitre 1 : rien sur la page de garde, l'historique des révisions
+    # et le sommaire (même convention que le Générateur de DAT).
+    footer_activation = (
+        r"\renewcommand{\footrulewidth}{0.4pt}" + "\n"
+        + r"\fancyfoot[L]{\small\color{graytxt}" + ctx["integrator"]["name"]
+        + r" --- " + ctx["integrator"]["website"] + "}\n"
+        + r"\fancyfoot[R]{\small\color{graytxt}Page \thepage/\pageref{LastPage}}"
+    )
 
     return (
         preamble
         + "\n\n\\begin{document}\n\n"
-        + cover + "\n\n"
-        + revisions + "\n\n"
+        + cover + "\n\n\\clearpage\n\n"
+        + revisions + "\n\n\\clearpage\n\n"
+        + r"\tableofcontents" + "\n\n\\clearpage\n\n"
+        + footer_activation + "\n\n"
+        + intro_cadrage + "\n\n"
+        + parties_prenantes_client + "\n\n"
         + prestataire + "\n\n"
+        + zextras_contacts + "\n\n"
+        + carbonio_solution + "\n\n"
         + prerequis + "\n\n"
         + architecture + "\n\n"
         + "\\end{document}\n"
@@ -149,6 +275,7 @@ def main():
     catalogs = {
         "team_directory": load_yaml(CATALOGS_DIR / "team_directory.yaml"),
         "component_labels": load_yaml(CATALOGS_DIR / "component_labels.yaml"),
+        "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
     }
 
     if "nodes" not in client_config:
@@ -171,6 +298,8 @@ def main():
         if client_logo_src.exists():
             shutil.copy(client_logo_src, generation_dir / "client_logo.png")
             ctx["client"]["logo_file"] = "client_logo.png"
+        else:
+            print(f"Avertissement : logo client introuvable ({client_logo_src}), page de garde sans logo.")
 
     tex_filename = f"Prerequis_{slugify(client_config['client']['name'])}.tex"
     tex_path = generation_dir / tex_filename
