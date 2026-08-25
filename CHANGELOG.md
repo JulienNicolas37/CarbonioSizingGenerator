@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 — Correctifs et confort d'usage
+- `generate_sizing.py` : retrait de la question sur le chemin du logo client — ce champ reste dans le
+  schéma (`client.logo`) mais se renseigne manuellement dans le YAML par la personne qui finalise le
+  document, pas lors du questionnaire de dimensionnement
+- `generate_sizing.py` : affiche en fin d'exécution la commande `generate_pdf.py --client ... --compile`
+  prête à copier-coller, avec le bon chemin vers la config générée
+- `README.md` : section "Dépannage" pour le cas "latexmk n'est pas installé (ou pas dans le PATH)"
+  alors que le paquet est bien installé (le plus souvent : TeX Live installé manuellement via
+  install-tl, binaires hors des dossiers standards du PATH) ; ajout de `amssymb` à la liste des
+  dépendances système documentées et de `latexmk` explicitement à la commande d'installation apt
+
 ## 0.3.0 — Structure DAT-like (chapitres, sommaire, parties prenantes)
 - Passage de la classe LaTeX `article` à `report` : chapitres numérotés, sommaire (`\tableofcontents`),
   pied de page actif seulement à partir du chapitre 1 (comme le Générateur de DAT)

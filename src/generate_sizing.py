@@ -12,6 +12,7 @@ Usage :
     python3 generate_sizing.py                     # mode interactif, crée une nouvelle config
 """
 import argparse
+import os
 import sys
 from datetime import date
 from pathlib import Path
@@ -70,10 +71,6 @@ def run_interactive(catalogs: dict) -> dict:
         choices=["Public", "Client", "Restreint", "Confidentiel"],
         default="Client",
     ).ask()
-    logo = questionary.text(
-        "Chemin vers le logo client (optionnel, chemin relatif à ce fichier de config, laisser vide si aucun) :",
-        default="",
-    ).ask()
     domaines = int(questionary.text("Nombre de domaines :", default="1").ask())
     comptes = int(questionary.text("Nombre de comptes :").ask())
     volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
@@ -118,7 +115,7 @@ def run_interactive(catalogs: dict) -> dict:
         "client": {
             "name": name,
             "classification": classification,
-            "logo": logo or None,
+            "logo": None,  # chemin relatif à ce fichier vers un logo client — à ajouter manuellement si besoin
             "domaines": domaines,
             "comptes": comptes,
             "volumetrie_to": volumetrie_to,
@@ -230,7 +227,15 @@ def main():
 
     save_client_config(output_path, client_config)
     print(f"Config client écrite : {output_path}")
-    print("(Génération LaTeX/PDF : à venir dans une prochaine version)")
+
+    generate_pdf_script = Path(__file__).resolve().parent / "generate_pdf.py"
+    try:
+        generate_pdf_rel = os.path.relpath(generate_pdf_script, Path.cwd())
+        output_rel = os.path.relpath(output_path, Path.cwd())
+    except ValueError:
+        generate_pdf_rel, output_rel = str(generate_pdf_script), str(output_path)
+    print("\nPour générer le document LaTeX/PDF :")
+    print(f"  python3 {generate_pdf_rel} --client {output_rel} --compile")
 
 
 if __name__ == "__main__":

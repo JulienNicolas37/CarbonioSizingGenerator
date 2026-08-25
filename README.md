@@ -15,13 +15,42 @@ pip install pyyaml questionary jinja2 --break-system-packages
 
 Dépendances système : une distribution LaTeX (TeX Live) avec `xelatex`
 (police Open Sans via `fontspec`), et les paquets `babel` (français),
-`tikz`, `adjustbox`, `longtable`, `colortbl`, `fancyhdr`, `lastpage`.
+`tikz`, `adjustbox`, `longtable`, `colortbl`, `fancyhdr`, `lastpage`,
+`amssymb` (cases à cocher de la page Confidentialité).
 Sur Debian/Ubuntu :
 
 ```bash
 apt-get install texlive-xetex texlive-latex-recommended \
                  texlive-latex-extra texlive-lang-french \
-                 texlive-pictures fonts-open-sans
+                 texlive-pictures fonts-open-sans latexmk
+```
+
+### Dépannage : "latexmk n'est pas installé (ou pas dans le PATH)"
+
+Ce message peut apparaître même si `latexmk` a été installé, si son
+exécutable n'est pas dans un dossier listé par la variable `PATH`.
+Étapes de diagnostic :
+
+```bash
+# 1. latexmk est-il trouvé par le shell actuel ?
+which latexmk
+# Si ça n'affiche rien, latexmk n'est pas dans le PATH de ce shell.
+
+# 2. Le paquet est-il bien installé, et où ?
+dpkg -l | grep latexmk          # doit afficher une ligne "ii  latexmk ..."
+dpkg -L latexmk | grep bin      # chemin exact de l'exécutable (normalement /usr/bin/latexmk)
+
+# 3. Si le paquet n'apparaît pas du tout à l'étape 2 :
+sudo apt-get install latexmk
+
+# 4. Si le paquet EST installé mais `which latexmk` reste vide : le
+#    fichier n'est probablement pas dans un dossier standard (cas d'une
+#    installation manuelle de TeX Live via install-tl plutôt que apt,
+#    par exemple sous /usr/local/texlive/<année>/bin/x86_64-linux/).
+#    Ajouter ce dossier au PATH dans ~/.bashrc (ou ~/.profile) :
+echo 'export PATH="/usr/local/texlive/2025/bin/x86_64-linux:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+# Puis ouvrir un NOUVEAU terminal (ou re-`source`) et retester `which latexmk`.
 ```
 
 ## Utilisation
@@ -29,6 +58,7 @@ apt-get install texlive-xetex texlive-latex-recommended \
 ```bash
 # 1. Dimensionnement — nouvelle config, questionnaire interactif
 python3 src/generate_sizing.py
+# Affiche à la fin la commande exacte à copier-coller pour l'étape 2.
 
 # Relecture/ajustement d'une config existante
 python3 src/generate_sizing.py --client config/clients/univ_amboise.yaml
