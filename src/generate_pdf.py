@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config_loader import load_client_config, load_yaml, CATALOGS_DIR, slugify
+from config_loader import load_client_config, load_yaml, CATALOGS_DIR, slugify, get_client
 from latex_utils import build_env, escape_latex
 from tikz_builder import build_tikz
 
@@ -46,8 +46,8 @@ CLASSIFICATION_LEVELS = [
 ]
 
 # Libellés d'affichage des services cochés (config client, clé "services"),
-# pour le "Rappel des besoins exprimés" — email/calendrier/contacts sont
-# toujours inclus et affichés à part.
+# pour le récapitulatif des besoins exprimés — email/calendrier/contacts
+# sont toujours inclus et affichés à part.
 SERVICE_DISPLAY_LABELS = {
     "chat": "Chat",
     "tache": "Tâches",
@@ -56,14 +56,13 @@ SERVICE_DISPLAY_LABELS = {
     "visio": "Visioconférence",
 }
 
-
-def lookup_person(team_directory: dict, person_id) -> dict:
-    if person_id is None:
-        return {"nom": "[à préciser]", "role": ""}
-    entry = team_directory.get(person_id) or team_directory.get(str(person_id))
-    if not entry:
-        return {"nom": f"[id {person_id} inconnu dans team_directory.yaml]", "role": ""}
-    return {"nom": entry["nom"], "role": entry.get("role", "")}
+# Étiquette de fonction projet affichée dans la table des contacts Zextras
+# (chapitre Parties prenantes), distincte du rôle/titre de la personne.
+PROJECT_ROLE_LABELS = {
+    "commercial": "Commercial en charge",
+    "auteur": "Rédacteur du document",
+    "chef_projet": "Chef de projet",
+}
 
 
 def value_or_placeholder(value, label: str) -> str:
@@ -75,26 +74,27 @@ def value_or_placeholder(value, label: str) -> str:
 
 
 def build_context(client_config: dict, catalogs: dict) -> dict:
-    team_directory = catalogs["team_directory"]
     component_labels = catalogs["component_labels"]
     component_descriptions = catalogs["component_descriptions"]
 
-    client = client_config["client"]
-    commercial = lookup_person(team_directory, client_config.get("infra", {}).get("commercial_id"))
-    auteur = lookup_person(team_directory, client_config.get("infra", {}).get("auteur_id"))
+    client_raw = get_client(client_config)
+    prestataire_raw = client_config.get("parties_prenantes", {}).get("prestataire", {})
+    commercial_raw = prestataire_raw.get("commercial", {})
+    auteur_raw = prestataire_raw.get("auteur", {})
+    chef_projet_raw = prestataire_raw.get("chef_projet", {})
 
     raw_revisions = client_config.get("revisions") or [
-        {"version": "1.0", "date": "[à préciser]", "auteur_id": None, "commentaire": "Version générée automatiquement"}
+        {"version": "1.0", "date": "[à préciser]", "auteur": None, "commentaire": "Version générée automatiquement"}
     ]
-    revisions = []
-    for rev in raw_revisions:
-        rev_auteur = lookup_person(team_directory, rev.get("auteur_id"))
-        revisions.append({
+    revisions = [
+        {
             "version": escape_latex(rev.get("version", "")),
             "date": escape_latex(rev.get("date", "")),
-            "auteur_nom": escape_latex(rev_auteur["nom"]),
+            "auteur_nom": value_or_placeholder(rev.get("auteur"), "Auteur à préciser"),
             "commentaire": escape_latex(rev.get("commentaire", "")),
-        })
+        }
+        for rev in raw_revisions
+    ]
 
     nodes = []
     totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0, "disk_store_gb": 0}
@@ -136,22 +136,22 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[],
     )
 
-    # --- Rappel des besoins exprimés (chapitre 1) ---
+    # --- Récapitulatif des besoins exprimés (chapitre "Prérequis techniques") ---
     active_services = [SERVICE_DISPLAY_LABELS[s] for s, v in client_config.get("services", {}).items()
                         if v and s in SERVICE_DISPLAY_LABELS]
     services_display = "Messagerie, agenda et contacts (toujours inclus)"
     if active_services:
         services_display += ", " + ", ".join(active_services)
     besoins = {
-        "domaines": client.get("domaines", "[à préciser]"),
-        "comptes": client.get("comptes", "[à préciser]"),
-        "volumetrie_to": client.get("volumetrie_to", "[à préciser]"),
-        "stockage_objet": "Oui" if client.get("stockage_objet") else "Non",
+        "domaines": client_raw.get("domaines", "[à préciser]"),
+        "comptes": client_raw.get("comptes", "[à préciser]"),
+        "volumetrie_to": client_raw.get("volumetrie_to", "[à préciser]"),
+        "stockage_objet": "Oui" if client_raw.get("stockage_objet") else "Non",
         "services_display": escape_latex(services_display),
     }
 
     # --- Confidentialité (chapitre 1) ---
-    classification_actuelle = client.get("classification", "Client")
+    classification_actuelle = client_raw.get("classification", "Client")
     classification_niveaux = [
         {
             "case": r"$\boxtimes$" if label == classification_actuelle else r"$\square$",
@@ -171,47 +171,60 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     ]
 
     # --- Parties prenantes : côté client (chapitre 2) ---
-    pp_client_cfg = client_config.get("parties_prenantes", {}).get("client", {})
-    adresse_lines = pp_client_cfg.get("adresse") or []
+    adresse_lines = client_raw.get("adresse") or []
     adresse_display = r"\\".join(escape_latex(line) for line in adresse_lines) if adresse_lines else None
-    contacts = []
-    for c in pp_client_cfg.get("contacts", []):
-        contacts.append({
+    contacts = [
+        {
             "nom": escape_latex(c.get("nom", "")),
             "role": escape_latex(c.get("role", "")),
             "email": escape_latex(c.get("email", "")),
             "telephone": escape_latex(c.get("telephone", "")),
-        })
-    parties_prenantes = {
-        "client": {
-            "description": value_or_placeholder(pp_client_cfg.get("description"), "Description du client à compléter"),
-            "site_web": value_or_placeholder(pp_client_cfg.get("site_web"), "Site web à préciser"),
-            "adresse": adresse_display or r"\placeholder{Adresse à préciser}",
-            "telephone_urgence": value_or_placeholder(pp_client_cfg.get("telephone_urgence"), "Téléphone d'urgence à préciser"),
-            "contacts": contacts,
         }
+        for c in client_raw.get("contacts", [])
+    ]
+    client = {
+        "name": escape_latex(client_raw.get("name", "[à préciser]")),
+        "classification": escape_latex(classification_actuelle),
+        "logo_file": None,  # résolu dans main() une fois le logo copié dans generation/
+        "description": value_or_placeholder(client_raw.get("description"), "Description du client à compléter"),
+        "site_web": value_or_placeholder(client_raw.get("site_web"), "Site web à préciser"),
+        "adresse": adresse_display or r"\placeholder{Adresse à préciser}",
+        "telephone_urgence": value_or_placeholder(client_raw.get("telephone_urgence"), "Téléphone d'urgence à préciser"),
+        "contacts": contacts,
     }
 
-    # --- Contacts Zextras (chapitre 2) : tout l'annuaire, tel quel ---
-    zextras_contacts = [
-        {
-            "nom": escape_latex(entry["nom"]),
-            "role": escape_latex(entry.get("role", "")),
-            "email": escape_latex(entry.get("email", "")),
-            "telephone": escape_latex(entry.get("telephone", "")),
+    # --- Parties prenantes : côté prestataire (chapitre 2) ---
+    # Les informations de commercial/auteur/chef de projet sont désormais
+    # recopiées EN CLAIR dans la config client (voir generate_sizing.py) —
+    # plus de référence par id à résoudre ici.
+    def escaped_person(raw: dict) -> dict:
+        return {
+            "nom": escape_latex(raw.get("nom", "[à préciser]")),
+            "role": escape_latex(raw.get("role", "")),
         }
-        for entry in team_directory.values()
-    ]
+
+    commercial = escaped_person(commercial_raw)
+    auteur = escaped_person(auteur_raw)
+
+    zextras_contacts = []
+    for key, person_raw in (("commercial", commercial_raw), ("auteur", auteur_raw), ("chef_projet", chef_projet_raw)):
+        if not person_raw.get("nom"):
+            continue
+        fonction = PROJECT_ROLE_LABELS[key]
+        role_titre = person_raw.get("role", "")
+        role_display = f"{fonction} --- {role_titre}" if role_titre else fonction
+        zextras_contacts.append({
+            "nom": escape_latex(person_raw["nom"]),
+            "role": escape_latex(role_display),
+            "email": escape_latex(person_raw.get("email", "")),
+            "telephone": escape_latex(person_raw.get("telephone", "")),
+        })
 
     return {
-        "client": {
-            "name": escape_latex(client["name"]),
-            "classification": escape_latex(classification_actuelle),
-            "logo_file": client.get("logo_file"),
-        },
+        "client": client,
         "integrator": DEFAULT_INTEGRATOR,
-        "commercial": {"nom": escape_latex(commercial["nom"]), "role": escape_latex(commercial["role"])},
-        "auteur": {"nom": escape_latex(auteur["nom"]), "role": escape_latex(auteur["role"])},
+        "commercial": commercial,
+        "auteur": auteur,
         "revisions": revisions,
         "nodes": nodes,
         "totals": totals,
@@ -219,7 +232,6 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "besoins": besoins,
         "classification_niveaux": classification_niveaux,
         "perimetre_items": perimetre_items,
-        "parties_prenantes": parties_prenantes,
         "zextras_contacts": zextras_contacts,
     }
 
@@ -273,7 +285,6 @@ def main():
 
     client_config = load_client_config(args.client)
     catalogs = {
-        "team_directory": load_yaml(CATALOGS_DIR / "team_directory.yaml"),
         "component_labels": load_yaml(CATALOGS_DIR / "component_labels.yaml"),
         "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
     }
@@ -285,7 +296,8 @@ def main():
 
     ctx = build_context(client_config, catalogs)
 
-    client_dir = BUILD_DIR / slugify(client_config["client"]["name"])
+    client_name = get_client(client_config).get("name", "client")
+    client_dir = BUILD_DIR / slugify(client_name)
     generation_dir = client_dir / "generation"
     generation_dir.mkdir(parents=True, exist_ok=True)
 
@@ -293,15 +305,16 @@ def main():
     # même convention que le Générateur de DAT).
     shutil.copy(TEMPLATES_DIR / "assets" / "logo_zextras_services.png", generation_dir / "integrator_logo.png")
     ctx["integrator"]["logo_file"] = "integrator_logo.png"
-    if client_config["client"].get("logo"):
-        client_logo_src = Path(args.client).resolve().parent / client_config["client"]["logo"]
+    client_logo = get_client(client_config).get("logo")
+    if client_logo:
+        client_logo_src = Path(args.client).resolve().parent / client_logo
         if client_logo_src.exists():
             shutil.copy(client_logo_src, generation_dir / "client_logo.png")
             ctx["client"]["logo_file"] = "client_logo.png"
         else:
             print(f"Avertissement : logo client introuvable ({client_logo_src}), page de garde sans logo.")
 
-    tex_filename = f"Prerequis_{slugify(client_config['client']['name'])}.tex"
+    tex_filename = f"Prerequis_{slugify(client_name)}.tex"
     tex_path = generation_dir / tex_filename
     tex_path.write_text(render_document(ctx), encoding="utf-8")
     print(f"Fichier LaTeX écrit : {tex_path}")

@@ -1,5 +1,17 @@
 \chapter{Prérequis techniques}
 
+\section{Récapitulatif des besoins exprimés}
+Ce dimensionnement a été établi à partir des éléments suivants,
+communiqués par le client~:
+\begin{itemize}[nosep]
+  \item Nombre de domaines de messagerie~: \VAR{ besoins.domaines }
+  \item Nombre de comptes~: \VAR{ besoins.comptes }
+  \item Volumétrie totale de données~: \VAR{ besoins.volumetrie_to } To
+  \item Stockage Objet~: \VAR{ besoins.stockage_objet }
+  \item Services demandés~: \VAR{ besoins.services_display }
+\end{itemize}
+
+\section{Dimensionnement de l'infrastructure}
 Le tableau ci-dessous détaille les machines virtuelles nécessaires au
 déploiement, réparties entre la zone publique (DMZ) et la zone privée
 (LAN).

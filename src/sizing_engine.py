@@ -141,7 +141,7 @@ def build_nodes(client_config: dict, catalogs: dict,
     sizing_rules = catalogs["sizing_rules"]
     vm_catalog = catalogs["vm_catalog"]
 
-    client = client_config.get("client", {})
+    client = client_config.get("parties_prenantes", {}).get("client", {})
     comptes = client.get("comptes", 0)
     volumetrie_to = client.get("volumetrie_to", 0)
     stockage_objet = client.get("stockage_objet", False)

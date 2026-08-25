@@ -1,16 +1,38 @@
 revisions:
 - version: '1.0'
   date: 24/08/2026
-  auteur_id: 1
+  auteur: Julien NICOLAS
   commentaire: Première version
-client:
-  name: Client Exemple Petite Infra
-  classification: Client
-  logo: null
-  domaines: 2
-  comptes: 800
-  volumetrie_to: 1.5
-  stockage_objet: false
+parties_prenantes:
+  client:
+    name: Client Exemple Petite Infra
+    classification: Client
+    logo: null
+    domaines: 2
+    comptes: 800
+    volumetrie_to: 1.5
+    stockage_objet: false
+    description: null
+    site_web: null
+    adresse: []
+    telephone_urgence: null
+    contacts: []
+  prestataire:
+    commercial:
+      nom: Julien NICOLAS
+      role: Responsable de production
+      email: julien.nicolas@zextras.fr
+      telephone: +33 6 69 40 25 96
+    auteur:
+      nom: Julien NICOLAS
+      role: Responsable de production
+      email: julien.nicolas@zextras.fr
+      telephone: +33 6 69 40 25 96
+    chef_projet:
+      nom: Julien NICOLAS
+      role: Responsable de production
+      email: julien.nicolas@zextras.fr
+      telephone: +33 6 69 40 25 96
 services:
   chat: true
   tache: true
@@ -22,15 +44,6 @@ infra:
   migration_factory: false
   ha_tier: 0
   mailstore_count: 1
-  commercial_id: 1
-  auteur_id: 1
-parties_prenantes:
-  client:
-    description: null
-    site_web: null
-    adresse: []
-    telephone_urgence: null
-    contacts: []
 nodes:
 - id: proxy_mta01
   zone: DMZ

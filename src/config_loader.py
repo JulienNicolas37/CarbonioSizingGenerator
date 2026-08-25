@@ -43,6 +43,14 @@ def load_client_config(path_str: str) -> dict:
     return load_yaml(p)
 
 
+def get_client(client_config: dict) -> dict:
+    """Toutes les informations client vivent en UN seul endroit :
+    parties_prenantes.client (identité, dimensionnement ET parties
+    prenantes côté client). Accès défensif : ne lève jamais d'erreur sur
+    une config partielle."""
+    return client_config.setdefault("parties_prenantes", {}).setdefault("client", {})
+
+
 def save_client_config(path_str: str, config: dict) -> None:
     p = resolve_client_path(path_str)
     p.parent.mkdir(parents=True, exist_ok=True)

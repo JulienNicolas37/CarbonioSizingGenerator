@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.4.0 — Réorganisation du fichier de configuration
+- **Fusion des sections "client"** : toutes les informations relatives au client (identité,
+  dimensionnement, parties prenantes) vivent maintenant sous une seule clé
+  `parties_prenantes.client`. Il n'y a plus de section `client:` séparée au niveau racine.
+- **Nouvelle section `parties_prenantes.prestataire`** : commercial, auteur (rédacteur) et
+  **chef de projet** (nouveau rôle, nouvelle question en interactif) — déplacés hors de `infra:`,
+  qui ne contient plus que des décisions techniques (ha_tier, mailstore_count, imap, migration_factory).
+- **Contacts Zextras recopiés en clair** : `commercial`/`auteur`/`chef_projet` contiennent
+  désormais nom/rôle/email/téléphone directement dans le YAML (recopiés depuis
+  `team_directory.yaml` au moment de la génération), et non plus une simple référence par id —
+  le fichier de config reste auto-suffisant, plus besoin de croiser team_directory.yaml pour
+  comprendre qui est qui. `revisions[].auteur` est également un nom en clair, plus un id.
+- **Table des contacts Zextras (chapitre Parties prenantes)** : n'affiche plus tout
+  `team_directory.yaml`, mais uniquement les 3 personnes du projet (commercial/rédacteur/chef de
+  projet), avec le rôle affiché comme "Fonction projet --- Titre" (ex. "Chef de projet ---
+  Directeur technique").
+- **"Récapitulatif des besoins exprimés"** déplacé du chapitre 1 (Introduction et cadrage) vers le
+  chapitre 4 (Prérequis techniques), où il a plus de sens. Le chapitre 4 est maintenant structuré en
+  2 sous-sections : "Récapitulatif des besoins exprimés" et "Dimensionnement de l'infrastructure"
+  (le tableau, avant directement au niveau du chapitre, est maintenant sa propre sous-section).
+- `config_loader.get_client()` : nouvel accesseur centralisant le chemin `parties_prenantes.client`,
+  utilisé par sizing_engine.py, generate_sizing.py et generate_pdf.py.
+
 ## 0.3.2 — Clarification latexmk
 - README et message d'erreur de `generate_pdf.py` : pointent maintenant explicitement vers
   `sudo apt-get install latexmk` comme correctif le plus probable (paquet parfois absent même

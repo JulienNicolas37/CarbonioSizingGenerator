@@ -1,31 +1,17 @@
 revisions:
 - version: '1.0'
   date: 24/08/2026
-  auteur_id: 1
+  auteur: Julien NICOLAS
   commentaire: Première version
-client:
-  name: Université d'Amboise
-  classification: Client
-  logo: assets/univ_amboise_logo.png
-  domaines: 15
-  comptes: 25000
-  volumetrie_to: 40
-  stockage_objet: true
-services:
-  chat: true
-  tache: true
-  files: true
-  edition_collaborative: true
-  visio: true
-infra:
-  imap: true
-  migration_factory: true
-  ha_tier: 3
-  mailstore_count: 5
-  commercial_id: 2
-  auteur_id: 1
 parties_prenantes:
   client:
+    name: Université d'Amboise
+    classification: Client
+    logo: assets/univ_amboise_logo.png
+    domaines: 15
+    comptes: 25000
+    volumetrie_to: 40
+    stockage_objet: true
     description: 'Université d''Amboise (fictive) — établissement d''enseignement
       supérieur utilisé comme cas d''exemple d''infrastructure haute disponibilité,
       avec une population mixte personnel/étudiants (deux domaines de messagerie distincts).
@@ -53,6 +39,33 @@ parties_prenantes:
       role: Intervenant technique
       email: thomas.roux@univ-amboise.fr
       telephone: ''
+  prestataire:
+    commercial:
+      nom: William SANTALIESTRA
+      role: Directeur d'agence
+      email: william.santaliestra@zextras.fr
+      telephone: '+33 6 16 99 03 55'
+    auteur:
+      nom: Julien NICOLAS
+      role: Responsable de production
+      email: julien.nicolas@zextras.fr
+      telephone: '+33 6 69 40 25 96'
+    chef_projet:
+      nom: Sarah LAMBERT
+      role: Cheffe de projet
+      email: sarah.lambert@zextras.fr
+      telephone: '+33 6 89 99 84 69'
+services:
+  chat: true
+  tache: true
+  files: true
+  edition_collaborative: true
+  visio: true
+infra:
+  imap: true
+  migration_factory: true
+  ha_tier: 3
+  mailstore_count: 5
 nodes:
 - id: proxy01
   zone: DMZ

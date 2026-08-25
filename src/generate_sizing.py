@@ -2,10 +2,9 @@
 """
 generate_sizing.py — Point d'entrée du générateur de dimensionnement Carbonio.
 
-Version actuelle (premier socle) : calcule et écrit la liste des nœuds
-(nodes) dans le YAML client. La génération LaTeX/PDF arrive dans une
-prochaine version (voir CHANGELOG.md) — conformément à la consigne de
-toujours valider avant de générer une nouvelle version du programme.
+Calcule et écrit la liste des nœuds (nodes) dans le YAML client. La
+génération LaTeX/PDF se fait ensuite via generate_pdf.py (la commande
+exacte est affichée en fin d'exécution).
 
 Usage :
     python3 generate_sizing.py --client config/clients/univ_amboise.yaml
@@ -19,15 +18,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config_loader import load_catalogs, load_client_config, save_client_config, slugify, CLIENTS_DIR
+from config_loader import load_catalogs, load_client_config, save_client_config, slugify, get_client, CLIENTS_DIR
 from sizing_engine import build_nodes, suggest_ha_tier, suggest_mailstore_count, needs_imap_question
+
+# Étiquette de fonction affichée dans le document pour chaque rôle projet
+# (voir generate_pdf.py, table des contacts Zextras).
+PROJECT_ROLE_LABELS = {
+    "commercial": "Commercial en charge",
+    "auteur": "Rédacteur du document",
+    "chef_projet": "Chef de projet",
+}
 
 
 def print_review(client_config: dict, result: dict) -> None:
+    client = get_client(client_config)
     infra = result["infra_resolved"]
     print("\n=== Rétrospective — récapitulatif du dimensionnement ===")
-    print(f"Client            : {client_config['client']['name']}")
-    print(f"Comptes           : {client_config['client']['comptes']}")
+    print(f"Client            : {client.get('name')}")
+    print(f"Comptes           : {client.get('comptes')}")
     print(f"Palier HA retenu  : {infra['ha_tier']} "
           f"(suggestion : {infra['ha_tier_suggestion']} — {infra['ha_tier_reason']})")
     print(f"Mailstores retenu : {infra['mailstore_count']} "
@@ -93,13 +101,34 @@ def run_interactive(catalogs: dict) -> dict:
             "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
         ).ask()
 
+    # --- Parties prenantes côté prestataire (Zextras) ---
+    # On sélectionne dans l'annuaire (catalogs/team_directory.yaml) pour
+    # éviter les fautes de frappe, mais l'enregistrement COMPLET (nom,
+    # rôle, email, téléphone) est recopié tel quel dans la config client :
+    # pas de simple id de référence, pour que le fichier reste
+    # auto-suffisant et facile à maintenir sans devoir croiser un autre
+    # fichier.
     team_directory = catalogs["team_directory"]
     team_choices = [
         questionary.Choice(title=f"{entry['nom']} ({entry.get('role', '')})", value=person_id)
         for person_id, entry in team_directory.items()
     ]
     commercial_id = questionary.select("Commercial en charge :", choices=team_choices).ask()
-    auteur_id = questionary.select("Qui génère ce document ?", choices=team_choices).ask()
+    auteur_id = questionary.select("Qui rédige ce document ?", choices=team_choices).ask()
+    chef_projet_id = questionary.select("Qui est le chef de projet ?", choices=team_choices).ask()
+
+    def inline_person(person_id):
+        entry = team_directory[person_id]
+        return {
+            "nom": entry["nom"],
+            "role": entry.get("role", ""),
+            "email": entry.get("email", ""),
+            "telephone": entry.get("telephone", ""),
+        }
+
+    commercial = inline_person(commercial_id)
+    auteur = inline_person(auteur_id)
+    chef_projet = inline_person(chef_projet_id)
 
     # L'historique des révisions est placé en PREMIÈRE clé du fichier —
     # c'est la partie qu'on doit mettre à jour le plus souvent (nouvelle
@@ -109,17 +138,36 @@ def run_interactive(catalogs: dict) -> dict:
         "revisions": [{
             "version": "1.0",
             "date": date.today().strftime("%d/%m/%Y"),
-            "auteur_id": auteur_id,
+            "auteur": auteur["nom"],
             "commentaire": "Première version",
         }],
-        "client": {
-            "name": name,
-            "classification": classification,
-            "logo": None,  # chemin relatif à ce fichier vers un logo client — à ajouter manuellement si besoin
-            "domaines": domaines,
-            "comptes": comptes,
-            "volumetrie_to": volumetrie_to,
-            "stockage_objet": stockage_objet,
+        # Chapitre "Parties prenantes" : TOUTES les informations relatives
+        # au client (identité, dimensionnement, contacts) sont ici — un
+        # seul endroit, pas de section "client" séparée par ailleurs.
+        "parties_prenantes": {
+            "client": {
+                "name": name,
+                "classification": classification,
+                "logo": None,  # chemin relatif à ce fichier vers un logo client — à ajouter manuellement si besoin
+                "domaines": domaines,
+                "comptes": comptes,
+                "volumetrie_to": volumetrie_to,
+                "stockage_objet": stockage_objet,
+                # Contacts client : structure prévue mais PAS demandée en
+                # interactif (à compléter manuellement, voir README). Tant
+                # que ces champs sont vides, le document affiche des
+                # repères "[à préciser]" plutôt que de bloquer.
+                "description": None,
+                "site_web": None,
+                "adresse": [],
+                "telephone_urgence": None,
+                "contacts": [],
+            },
+            "prestataire": {
+                "commercial": commercial,
+                "auteur": auteur,
+                "chef_projet": chef_projet,
+            },
         },
         "services": {
             "chat": chat,
@@ -133,21 +181,6 @@ def run_interactive(catalogs: dict) -> dict:
             "migration_factory": migration_factory,
             "ha_tier": "auto",
             "mailstore_count": "auto",
-            "commercial_id": commercial_id,
-            "auteur_id": auteur_id,
-        },
-        # Chapitre "Parties prenantes" côté client : structure prévue mais
-        # PAS demandée en interactif (à compléter manuellement plus tard,
-        # voir README). Tant que ces champs sont vides, le document affiche
-        # des repères "[à préciser]" plutôt que de bloquer.
-        "parties_prenantes": {
-            "client": {
-                "description": None,
-                "site_web": None,
-                "adresse": [],
-                "telephone_urgence": None,
-                "contacts": [],
-            },
         },
     }
     return client_config
@@ -168,7 +201,7 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
 
     # Mode interactif : on présente toujours la suggestion, même si la
     # config avait déjà une valeur explicite.
-    client = client_config["client"]
+    client = get_client(client_config)
     imap = infra.get("imap", True)
     ha_suggestion = suggest_ha_tier(client["comptes"], imap, catalogs["sizing_rules"])
     ha_level_override = interactive_ha_choice(ha_suggestion.level, ha_suggestion.reason)
@@ -197,7 +230,7 @@ def main():
         output_path = args.client
     else:
         client_config = run_interactive(catalogs)
-        output_path = str(CLIENTS_DIR / f"{slugify(client_config['client']['name'])}.yaml")
+        output_path = str(CLIENTS_DIR / f"{slugify(get_client(client_config)['name'])}.yaml")
 
     ha_level_override, mailstore_count_override = resolve_overrides(
         client_config, catalogs, args.non_interactive
