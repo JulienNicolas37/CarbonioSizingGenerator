@@ -178,6 +178,15 @@ def main():
     print(f"Fichier LaTeX écrit : {tex_path}")
 
     if args.compile:
+        if shutil.which("latexmk") is None:
+            print("Erreur : 'latexmk' n'est pas installé (ou pas dans le PATH).")
+            print("Installation (Debian/Ubuntu) :")
+            print("  apt-get install texlive-xetex texlive-latex-recommended \\")
+            print("                   texlive-latex-extra texlive-lang-french \\")
+            print("                   texlive-pictures fonts-open-sans")
+            print(f"Le fichier .tex a bien été généré : {tex_path}")
+            print("Vous pouvez le compiler manuellement une fois latexmk installé.")
+            sys.exit(1)
         result = subprocess.run(
             ["latexmk", "-xelatex", "-interaction=nonstopmode", tex_filename],
             cwd=generation_dir, capture_output=True, text=True,

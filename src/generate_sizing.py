@@ -13,6 +13,7 @@ Usage :
 """
 import argparse
 import sys
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -86,9 +87,18 @@ def run_interactive(catalogs: dict) -> dict:
             "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
         ).ask()
 
+    team_directory = catalogs["team_directory"]
+    team_choices = [
+        questionary.Choice(title=f"{entry['nom']} ({entry.get('role', '')})", value=person_id)
+        for person_id, entry in team_directory.items()
+    ]
+    commercial_id = questionary.select("Commercial en charge :", choices=team_choices).ask()
+    auteur_id = questionary.select("Qui génère ce document ?", choices=team_choices).ask()
+
     client_config = {
         "client": {
             "name": name,
+            "classification": "Public/Client",
             "domaines": domaines,
             "comptes": comptes,
             "volumetrie_to": volumetrie_to,
@@ -106,7 +116,15 @@ def run_interactive(catalogs: dict) -> dict:
             "migration_factory": migration_factory,
             "ha_tier": "auto",
             "mailstore_count": "auto",
+            "commercial_id": commercial_id,
+            "auteur_id": auteur_id,
         },
+        "revisions": [{
+            "version": "1.0",
+            "date": date.today().strftime("%d/%m/%Y"),
+            "auteur_id": auteur_id,
+            "commentaire": "Première version",
+        }],
     }
     return client_config
 

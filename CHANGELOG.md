@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 — Correctifs
+- `generate_pdf.py` : message d'erreur clair (installation à faire) si `latexmk` est absent du PATH,
+  au lieu d'un traceback Python brut
+- `generate_sizing.py` (mode interactif) : ajout des questions manquantes "Commercial en charge" et
+  "Qui génère ce document ?" (sélection dans `team_directory.yaml`), plus génération automatique de
+  la première entrée de `revisions:` (date du jour, version 1.0) — jusqu'ici ces champs restaient à
+  `[à préciser]` sur les configs générées en interactif
+- `config_loader.load_catalogs()` inclut désormais `team_directory.yaml`
+
 ## 0.2.0 — Génération LaTeX/PDF
 - Nouveau catalogue `team_directory.yaml` : annuaire des intervenants Zextras, référencés par id numérique
   (commercial en charge, auteur du document, auteur de chaque révision) — jamais retapés en clair
