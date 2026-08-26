@@ -37,15 +37,15 @@ déploiement, réparties entre la zone publique (DMZ) et la zone privée
 \begin{longtable}{|p{2.6cm}|p{1cm}|p{3.4cm}|p{0.9cm}|p{1.3cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{2cm}|p{2cm}|}
 \hline
 \rowcolor{primary}
-\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{OS} & \tblhead{Appli} & \tblhead{Store} & \tblhead{Secondaire (S3)} & \tblhead{Backup\BLOCK{ if besoins.backup_sur_s3 } (S3)\BLOCK{ endif }} \\
+\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM (Go)} & \tblhead{OS (Go)} & \tblhead{Appli (Go)} & \tblhead{Store (Go)} & \tblhead{Secondaire (S3, Go)} & \tblhead{Backup (\BLOCK{ if besoins.backup_sur_s3 }S3, \BLOCK{ endif }Go)} \\
 \hline
 \endhead
 \BLOCK{ for n in nodes }
-\VAR{ n.id } & \VAR{ n.zone } & \VAR{ n.components_display } & \VAR{ n.sizing.vcpu } & \VAR{ n.sizing.ram_gb } Go & \VAR{ n.sizing.disk_os_gb } Go & \VAR{ n.sizing.disk_appli_gb } Go & \BLOCK{ if n.sizing.disk_store_gb }\VAR{ n.sizing.disk_store_gb } Go\BLOCK{ else }---\BLOCK{ endif } & \BLOCK{ if n.sizing.disk_secondaire_gb }\VAR{ n.sizing.disk_secondaire_gb } Go (S3)\BLOCK{ else }---\BLOCK{ endif } & \BLOCK{ if n.sizing.disk_backup_gb }\VAR{ n.sizing.disk_backup_gb } Go\BLOCK{ if besoins.backup_sur_s3 } (S3)\BLOCK{ endif }\BLOCK{ else }---\BLOCK{ endif } \\
+\VAR{ n.id } & \VAR{ n.zone } & \VAR{ n.components_display } & \VAR{ n.sizing.vcpu } & \VAR{ n.sizing.ram_gb } & \VAR{ n.sizing.disk_os_gb } & \VAR{ n.sizing.disk_appli_gb } & \BLOCK{ if n.sizing.disk_store_gb }\VAR{ n.sizing.disk_store_gb }\BLOCK{ else }---\BLOCK{ endif } & \BLOCK{ if n.sizing.disk_secondaire_gb }\VAR{ n.sizing.disk_secondaire_gb }\BLOCK{ else }---\BLOCK{ endif } & \BLOCK{ if n.sizing.disk_backup_gb }\VAR{ n.sizing.disk_backup_gb }\BLOCK{ else }---\BLOCK{ endif } \\
 \hline
 \BLOCK{ endfor }
 \rowcolor{lightbg}
-\textbf{Total (\VAR{ nodes|length } nœuds)} & & & \textbf{\VAR{ totals.vcpu }} & \textbf{\VAR{ totals.ram_gb } Go} & \textbf{\VAR{ totals.disk_os_gb } Go} & \textbf{\VAR{ totals.disk_appli_gb } Go} & \textbf{\VAR{ totals.disk_store_gb } Go} & \textbf{\BLOCK{ if totals.disk_secondaire_gb }\VAR{ totals.disk_secondaire_gb } Go (S3)\BLOCK{ else }---\BLOCK{ endif }} & \textbf{\BLOCK{ if totals.disk_backup_gb }\VAR{ totals.disk_backup_gb } Go\BLOCK{ if besoins.backup_sur_s3 } (S3)\BLOCK{ endif }\BLOCK{ else }---\BLOCK{ endif }} \\
+\textbf{Total (\VAR{ nodes|length } nœuds)} & & & \textbf{\VAR{ totals.vcpu }} & \textbf{\VAR{ totals.ram_gb }} & \textbf{\VAR{ totals.disk_os_gb }} & \textbf{\VAR{ totals.disk_appli_gb }} & \textbf{\VAR{ totals.disk_store_gb }} & \textbf{\BLOCK{ if totals.disk_secondaire_gb }\VAR{ totals.disk_secondaire_gb }\BLOCK{ else }---\BLOCK{ endif }} & \textbf{\BLOCK{ if totals.disk_backup_gb }\VAR{ totals.disk_backup_gb }\BLOCK{ else }---\BLOCK{ endif }} \\
 \hline
 \end{longtable}
 }

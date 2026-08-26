@@ -19,15 +19,15 @@ une VM assure le rôle de mailstore.
 \begin{longtable}{|p{3.8cm}|p{0.9cm}|p{2.6cm}|p{0.7cm}|p{1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|}
 \hline
 \rowcolor{primary}
-\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{OS} & \tblhead{Appli} & \tblhead{Store} \\
+\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM (Go)} & \tblhead{OS (Go)} & \tblhead{Appli (Go)} & \tblhead{Store (Go)} \\
 \hline
 \endhead
 \BLOCK{ for n in qualif_nodes }
-\VAR{ n.id } & \VAR{ n.zone } & \VAR{ n.components_display } & \VAR{ n.sizing.vcpu } & \VAR{ n.sizing.ram_gb } Go & \VAR{ n.sizing.disk_os_gb } Go & \VAR{ n.sizing.disk_appli_gb } Go & \BLOCK{ if n.sizing.disk_store_gb }\VAR{ n.sizing.disk_store_gb } Go\BLOCK{ else }---\BLOCK{ endif } \\
+\VAR{ n.id } & \VAR{ n.zone } & \VAR{ n.components_display } & \VAR{ n.sizing.vcpu } & \VAR{ n.sizing.ram_gb } & \VAR{ n.sizing.disk_os_gb } & \VAR{ n.sizing.disk_appli_gb } & \BLOCK{ if n.sizing.disk_store_gb }\VAR{ n.sizing.disk_store_gb }\BLOCK{ else }---\BLOCK{ endif } \\
 \hline
 \BLOCK{ endfor }
 \rowcolor{lightbg}
-\textbf{Total (\VAR{ qualif_nodes|length } nœuds)} & & & \textbf{\VAR{ qualif_totals.vcpu }} & \textbf{\VAR{ qualif_totals.ram_gb } Go} & \textbf{\VAR{ qualif_totals.disk_os_gb } Go} & \textbf{\VAR{ qualif_totals.disk_appli_gb } Go} & \textbf{\VAR{ qualif_totals.disk_store_gb } Go} \\
+\textbf{Total (\VAR{ qualif_nodes|length } nœuds)} & & & \textbf{\VAR{ qualif_totals.vcpu }} & \textbf{\VAR{ qualif_totals.ram_gb }} & \textbf{\VAR{ qualif_totals.disk_os_gb }} & \textbf{\VAR{ qualif_totals.disk_appli_gb }} & \textbf{\VAR{ qualif_totals.disk_store_gb }} \\
 \hline
 \end{longtable}
 }

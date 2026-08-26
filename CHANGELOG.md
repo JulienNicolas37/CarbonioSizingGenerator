@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.4 — Unités déplacées dans les en-têtes de tableau
+- Tableaux "Dimensionnement de l'infrastructure" (production et qualification) et "Bilan des
+  besoins" : les unités ("Go") et mentions "(S3)" sont désormais uniquement dans l'en-tête de
+  colonne (ex. "RAM (Go)", "Secondaire (S3, Go)", "Backup (S3, Go)") — les cellules n'affichent plus
+  que la valeur numérique brute, plus lisible sur des tableaux déjà denses.
+
 ## 0.6.3 — Correctif en-tête colonne Backup
 - Tableau "Dimensionnement de l'infrastructure" : l'en-tête de la colonne "Backup" affiche désormais
   "(S3)" quand `infra.backup_sur_s3` est actif, comme c'est déjà le cas pour "Secondaire (S3)" —
