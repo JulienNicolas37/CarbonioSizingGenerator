@@ -139,6 +139,24 @@ def run_interactive(catalogs: dict) -> dict:
                 "que la production sur la qualification ?", default=False
             ).ask()
 
+    # --- Prestation commandée (migration, plateforme de destination, MCO) ---
+    # Toujours posées (même sans migration), car "plateforme de destination"
+    # a vocation à être réutilisée au-delà du seul chapitre migration.
+    migration_included = questionary.confirm(
+        "La migration est-elle incluse dans la prestation ?", default=False
+    ).ask()
+    destination_platform_choices = [
+        questionary.Choice(title="CarbonioCloud", value="carboniocloud"),
+        questionary.Choice(title="On Premise", value="onpremise"),
+        questionary.Choice(title="SaaS dédié", value="saasdedie"),
+    ]
+    destination_platform = questionary.select(
+        "Quelle est la plateforme de destination ?", choices=destination_platform_choices
+    ).ask()
+    mco_contract = questionary.confirm(
+        "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
+    ).ask()
+
     # --- Parties prenantes côté prestataire (Zextras) ---
     # On sélectionne dans l'annuaire (catalogs/team_directory.yaml) pour
     # éviter les fautes de frappe, mais l'enregistrement COMPLET (nom,
@@ -213,6 +231,14 @@ def run_interactive(catalogs: dict) -> dict:
             "files": files,
             "edition_collaborative": edition_collaborative,
             "visio": visio,
+        },
+        # Ce qui a été VENDU / commandé, distinct des décisions techniques
+        # d'infra ci-dessous (cf. remarque : "pourquoi tu as mis ça dans
+        # infra ?!" — cette fois ces informations vivent bien à part).
+        "prestation": {
+            "migration_included": migration_included,
+            "destination_platform": destination_platform,
+            "mco_contract": mco_contract,
         },
         "infra": {
             "imap": imap,

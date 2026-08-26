@@ -1,0 +1,56 @@
+# catalogs/migration_raci.yaml
+# Tableau RACI de la méthodologie de migration, extrait du document fourni
+# par Julien. "phase" vide = suite de la même phase que la ligne
+# précédente (pas de fusion de cellule, comme dans le document source).
+# "tag" (optionnel) : n'affiche cette ligne que pour la plateforme de
+# destination correspondante (onpremise / carboniocloud / saasdedie).
+
+- {phase: "Cadrage", activite: "Définition de la stratégie de migration (bascule unique ou lots)", client: "C / A", zextras: "R"}
+- {phase: "", activite: "Définition du planning et des fenêtres de bascule", client: "A", zextras: "R / C"}
+- {phase: "", activite: "Définition des populations / lots de migration", client: "A", zextras: "R / C"}
+
+- {phase: "Prérequis", activite: "Fourniture des accès à la messagerie source", client: "R / A", zextras: "I"}
+- {phase: "", activite: "Fourniture de la liste des domaines", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Fourniture de la liste des comptes et attributs", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Fourniture des alias", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Fourniture des listes de distribution et de leurs membres", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Fourniture de la liste des ressources", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Mise à disposition des VM Carbonio", client: "R / A", zextras: "C", tag: onpremise}
+- {phase: "", activite: "Fourniture des accès à l'infrastructure de destination", client: "R / A", zextras: "I", tag: onpremise}
+- {phase: "", activite: "Ouverture des flux nécessaires à Carbonio", client: "R / A", zextras: "C", tag: onpremise}
+- {phase: "", activite: "Ouverture des flux nécessaires à la migration", client: "R / A", zextras: "C"}
+
+- {phase: "Installation", activite: "Installation de la plateforme Carbonio", client: "I", zextras: "R / A", tag: onpremise}
+- {phase: "", activite: "Configuration initiale de Carbonio", client: "C", zextras: "R / A", tag: onpremise}
+- {phase: "", activite: "Mise en œuvre de l'orchestrateur de migration", client: "I", zextras: "R / A"}
+
+- {phase: "Provisionnement", activite: "Provisionnement initial des domaines", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Provisionnement des comptes, alias, DL et ressources", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Expression des besoins d'intégration au SI", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Fourniture et installation du script standard de provisionnement", client: "C", zextras: "R / A"}
+
+- {phase: "Qualification", activite: "Sélection des comptes de qualification", client: "A / C", zextras: "R"}
+- {phase: "", activite: "Première récupération de données", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Contrôle technique de la migration", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Validation fonctionnelle des données récupérées", client: "R / A", zextras: "C"}
+
+- {phase: "Migration massive", activite: "Lancement de la récupération massive des données", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Supervision de la migration", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Identification des anomalies de migration", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Validation des données préchargées", client: "R / A", zextras: "C"}
+
+- {phase: "Bascule", activite: "Validation du GO / NO GO de bascule", client: "A", zextras: "C"}
+- {phase: "", activite: "Bascule / redirection des flux de messagerie", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Vérification technique après bascule", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Validation fonctionnelle après bascule", client: "R / A", zextras: "C"}
+
+- {phase: "Synchronisation finale", activite: "Lancement de la synchronisation delta", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Supervision de la synchronisation delta", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Analyse des comptes en anomalie", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Traitement technique des anomalies de migration", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Validation des données après synchronisation finale", client: "R / A", zextras: "C"}
+
+- {phase: "Clôture", activite: "Suppression des configurations spécifiques de migration", client: "I", zextras: "R / A"}
+- {phase: "", activite: "Contrôle de fin de migration", client: "C", zextras: "R / A"}
+- {phase: "", activite: "Validation définitive de la migration", client: "R / A", zextras: "C"}
+- {phase: "", activite: "Clôture technique de la migration", client: "I", zextras: "R / A"}

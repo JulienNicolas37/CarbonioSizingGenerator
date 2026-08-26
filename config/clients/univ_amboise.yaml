@@ -55,6 +55,10 @@ parties_prenantes:
       role: Cheffe de projet
       email: sarah.lambert@zextras.fr
       telephone: +33 6 89 99 84 69
+prestation:
+  migration_included: true
+  destination_platform: onpremise
+  mco_contract: true
 services:
   chat: true
   tache: true

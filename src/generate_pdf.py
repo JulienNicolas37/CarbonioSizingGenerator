@@ -56,6 +56,34 @@ SERVICE_DISPLAY_LABELS = {
     "visio": "Visioconférence",
 }
 
+# Libellés d'affichage de la plateforme de destination (config client,
+# infra.destination_platform) — mêmes valeurs internes que les balises du
+# document de méthodologie de migration (onpremise/carboniocloud/saasdedie).
+DESTINATION_PLATFORM_LABELS = {
+    "carboniocloud": "CarbonioCloud",
+    "onpremise": "On Premise",
+    "saasdedie": "SaaS dédié",
+}
+
+RACI_LETTER_COLORS = {"R": "raciR", "A": "raciA", "C": "raciC", "I": "raciI"}
+
+
+def format_raci(code: str) -> str:
+    """Transforme un code RACI type "R / A" en LaTeX brut avec chaque
+    lettre en gras et colorée (R jaune, A rouge, C bleu, I vert). Jamais
+    échappé ensuite : c'est déjà du LaTeX généré."""
+    if not code:
+        return "---"
+    parts = [p.strip() for p in code.split("/")]
+    formatted = []
+    for p in parts:
+        color = RACI_LETTER_COLORS.get(p)
+        if color:
+            formatted.append(r"\textbf{\color{" + color + "}" + p + "}")
+        else:
+            formatted.append(escape_latex(p))
+    return " / ".join(formatted)
+
 
 def value_or_placeholder(value, label: str) -> str:
     """Repli visible (jamais bloquant) : \\placeholder{...} en LaTeX brut
@@ -166,6 +194,43 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "active": qualification_active,
         "mode": infra_resolved.get("qualification_mode") or "minimal",
     }
+
+    # --- Prestation commandée (migration, plateforme de destination, MCO) ---
+    prestation_raw = client_config.get("prestation", {})
+    destination_platform_raw = prestation_raw.get("destination_platform", "onpremise")
+    prestation = {
+        "migration_included": prestation_raw.get("migration_included", False),
+        "destination_platform": destination_platform_raw,
+        "destination_platform_display": escape_latex(
+            DESTINATION_PLATFORM_LABELS.get(destination_platform_raw, destination_platform_raw)
+        ),
+        "mco_contract": prestation_raw.get("mco_contract", False),
+    }
+    migration = {
+        "included": prestation["migration_included"],
+        "destination_platform": destination_platform_raw,
+        "is_onpremise": destination_platform_raw == "onpremise",
+        "is_carboniocloud": destination_platform_raw == "carboniocloud",
+        "is_saasdedie": destination_platform_raw == "saasdedie",
+        "mco": prestation["mco_contract"],
+    }
+
+    # Tableau RACI de la migration : n'inclut une ligne taguée que si elle
+    # correspond à la plateforme de destination retenue ; les lignes non
+    # taguées s'affichent toujours. Lettres RACI mises en forme (couleurs)
+    # une fois pour toutes ici (LaTeX déjà généré, jamais échappé ensuite).
+    migration_raci = []
+    if prestation["migration_included"]:
+        for row in catalogs.get("migration_raci", []):
+            tag = row.get("tag")
+            if tag and tag != destination_platform_raw:
+                continue
+            migration_raci.append({
+                "phase": escape_latex(row.get("phase", "")),
+                "activite": escape_latex(row.get("activite", "")),
+                "client_raci": format_raci(row.get("client", "")),
+                "zextras_raci": format_raci(row.get("zextras", "")),
+            })
 
     # --- Récapitulatif des besoins exprimés (chapitre "Prérequis techniques") ---
     active_services = [SERVICE_DISPLAY_LABELS[s] for s, v in client_config.get("services", {}).items()
@@ -286,6 +351,9 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "diagram_tikz_raw_qualif": diagram_tikz_raw_qualif,
         "bilan_totals": bilan_totals,
         "storage_categories": storage_categories,
+        "prestation": prestation,
+        "migration": migration,
+        "migration_raci": migration_raci,
     }
 
 
@@ -303,6 +371,8 @@ def render_document(ctx: dict) -> str:
     architecture = env.get_template("architecture.tex.j2").render(**ctx)
     qualification = (env.get_template("qualification.tex.j2").render(**ctx)
                       if ctx["qualification"]["active"] else "")
+    migration_methodology = (env.get_template("migration_methodology.tex.j2").render(**ctx)
+                              if ctx["migration"]["included"] else "")
     bilan_ressources = env.get_template("bilan_ressources.tex.j2").render(**ctx)
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
@@ -330,6 +400,7 @@ def render_document(ctx: dict) -> str:
         + prerequis + "\n\n"
         + architecture + "\n\n"
         + qualification + "\n\n"
+        + migration_methodology + "\n\n"
         + bilan_ressources + "\n\n"
         + "\\end{document}\n"
     )
@@ -347,6 +418,7 @@ def main():
         "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
         "carbonio_functions": load_yaml(CATALOGS_DIR / "carbonio_functions.yaml"),
         "sizing_rules": load_yaml(CATALOGS_DIR / "sizing_rules.yaml"),
+        "migration_raci": load_yaml(CATALOGS_DIR / "migration_raci.yaml"),
     }
 
     if "nodes" not in client_config:

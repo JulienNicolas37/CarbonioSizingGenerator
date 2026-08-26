@@ -1,4 +1,14 @@
-\chapter{Prérequis techniques}
+\chapter{Prérequis}
+
+\section{Prestations commandées}
+Le présent projet couvre les prestations suivantes~:
+\begin{itemize}[nosep]
+  \item Migration incluse dans la prestation~: \VAR{ "Oui" if prestation.migration_included else "Non" }
+\BLOCK{ if prestation.migration_included }
+  \item Plateforme de destination~: \VAR{ prestation.destination_platform_display }
+  \item Contrat de MCO à la suite de la migration~: \VAR{ "Oui" if prestation.mco_contract else "Non" }
+\BLOCK{ endif }
+\end{itemize}
 
 \section{Récapitulatif des besoins exprimés}
 Ce dimensionnement a été établi à partir des éléments suivants,

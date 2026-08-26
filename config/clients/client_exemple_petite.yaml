@@ -33,6 +33,10 @@ parties_prenantes:
       role: Responsable de production
       email: julien.nicolas@zextras.fr
       telephone: +33 6 69 40 25 96
+prestation:
+  migration_included: true
+  destination_platform: saasdedie
+  mco_contract: false
 services:
   chat: true
   tache: true

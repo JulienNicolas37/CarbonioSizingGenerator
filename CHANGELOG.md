@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.0 — Méthodologie de migration
+- **Nouvelle section `prestation`** (au niveau racine, distincte de `infra`) : `migration_included`,
+  `destination_platform` (carboniocloud/onpremise/saasdedie), `mco_contract` — 3 nouvelles questions
+  toujours posées en interactif.
+- **Chapitre "Prérequis" renommé** (ex "Prérequis techniques"), nouvelle première sous-section
+  "Prestations commandées" qui rappelle migration/plateforme/MCO.
+- **Nouveau chapitre "Méthodologie de migration"** (positionné entre "Infrastructure de
+  qualification" et "Bilan des besoins"), affiché uniquement si `migration_included` — reprend le
+  document fourni par Julien (7 sections, synthèse des responsabilités, RACI), avec du contenu
+  conditionné à la plateforme de destination (balises `<onpremise>`/`<carboniocloud>`/`<saasdedie>`
+  du document source, traduites en blocs Jinja) et au contrat de MCO (`<mco>`).
+- **3 coquilles corrigées** dans le document source (balises fermantes sans ouverture, ou balise
+  ouvrante jamais fermée) — lecture validée avec Julien avant application.
+- **SaaS dédié** n'affiche que le contenu explicitement tagué `<saasdedie>` (pas d'héritage du
+  contenu `<onpremise>` — choix validé explicitement, génère quelques sections plus courtes que le
+  cas On Premise, par exemple pas de sous-section "Intégration du provisionnement au SI").
+- **Nouveau catalogue `catalogs/migration_raci.yaml`** : tableau RACI (41 lignes) en données
+  structurées, avec balises de plateforme optionnelles par ligne.
+- **Tableau RACI coloré** : chaque lettre en gras et en couleur (R jaune/or, A rouge, C bleu, I vert)
+  — nouvelle fonction `format_raci()` et 4 couleurs `raciR`/`raciA`/`raciC`/`raciI` dans le préambule.
+- Correctif : signes "%" non échappés dans le texte source (interprétés comme des commentaires
+  LaTeX, coupant le texte) — corrigés en `\%`.
+
 ## 0.6.4 — Unités déplacées dans les en-têtes de tableau
 - Tableaux "Dimensionnement de l'infrastructure" (production et qualification) et "Bilan des
   besoins" : les unités ("Go") et mentions "(S3)" sont désormais uniquement dans l'en-tête de

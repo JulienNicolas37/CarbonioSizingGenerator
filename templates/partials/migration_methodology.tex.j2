@@ -1,0 +1,425 @@
+\chapter{Méthodologie de migration}
+
+\section{Principes généraux de la migration}
+Zextras Services dispose d'une méthodologie éprouvée pour accompagner les
+projets de migration vers Carbonio depuis les principales solutions de
+messagerie du marché. Cette méthodologie a pour objectif de sécuriser la
+reprise des données tout en réduisant au maximum l'impact de la migration
+sur les utilisateurs et sur la continuité du service de messagerie.
+
+Pour industrialiser ces opérations, Zextras Services s'appuie sur un
+orchestrateur de migration dédié, spécifiquement conçu pour piloter les
+différentes étapes d'une migration de messagerie. Cet outil constitue le
+cœur du dispositif de migration~: il permet de centraliser la
+configuration des opérations, de piloter les traitements sur un nombre
+important de comptes, de paralléliser les opérations lorsque cela est
+pertinent et de suivre individuellement l'état de migration de chaque
+boîte aux lettres.
+
+L'orchestrateur permet notamment de dissocier les différentes étapes de
+récupération des données et d'organiser la migration par lots
+d'utilisateurs. Cette approche offre une grande souplesse dans la
+planification du projet et permet d'adapter la vitesse de migration aux
+capacités des infrastructures source et destination, aux contraintes
+réseau ainsi qu'aux impératifs opérationnels du client.
+
+L'utilisation d'un orchestrateur permet également de disposer d'une
+vision consolidée de l'avancement des traitements. Les éventuelles
+anomalies rencontrées sur certains comptes peuvent ainsi être isolées
+sans bloquer la migration globale. Les comptes nécessitant une
+intervention particulière sont identifiés et peuvent faire l'objet d'un
+traitement spécifique par les équipes techniques de Zextras Services.
+
+Cette approche industrielle permet ainsi de traiter la migration comme
+un processus maîtrisé et reproductible plutôt que comme une succession
+d'opérations manuelles sur les comptes utilisateurs.
+
+La stratégie retenue repose par ailleurs sur un principe essentiel~: la
+majorité des données est migrée avant la bascule effective des
+utilisateurs vers Carbonio. La migration des données et la bascule du
+service sont donc volontairement dissociées afin de limiter fortement
+la période de transition.
+
+\section{Préparation et initialisation de la migration}
+La première phase du projet consiste à préparer simultanément
+l'environnement Carbonio de destination, les mécanismes de migration et
+les éléments nécessaires au provisionnement des objets de messagerie.
+
+Le client met à disposition de Zextras Services les accès nécessaires
+à la plateforme de messagerie source. Ces accès doivent permettre la
+consultation et la récupération des données devant être transférées
+vers Carbonio.
+
+Le client fournit également les informations nécessaires à la création
+des objets sur la plateforme de destination. Ces informations
+comprennent notamment la liste des comptes et leurs principaux
+attributs (nom, prénom, service d'appartenance, quota) ainsi que leur
+nature, par exemple compte individuel ou boîte fonctionnelle. Les alias
+associés aux comptes doivent également être communiqués.
+
+La liste des domaines de messagerie, des listes de distribution et de
+leurs membres ainsi que la liste des ressources doivent être transmises
+afin de permettre la préparation de la plateforme Carbonio avant le
+démarrage de la migration des données.
+
+\BLOCK{ if migration.is_onpremise }
+En parallèle, le client met à disposition les machines virtuelles
+constituant l'infrastructure Carbonio et fournit à Zextras Services les
+accès nécessaires à leur administration. Les flux réseau requis pour le
+fonctionnement de Carbonio sont ouverts conformément aux spécifications
+communiquées par Zextras Services.
+\BLOCK{ endif }
+
+Les flux nécessaires aux opérations de migration doivent également être
+autorisés entre les différentes infrastructures concernées. Selon
+l'architecture retenue, ces communications peuvent concerner la
+plateforme source, l'infrastructure Carbonio de destination et les
+composants dédiés à l'orchestration de la migration.
+
+\BLOCK{ if migration.is_onpremise }
+Une fois ces prérequis disponibles, Zextras Services procède à
+l'installation et à la configuration de la solution Carbonio
+conformément à l'architecture définie pour le projet.
+\BLOCK{ endif }
+\BLOCK{ if migration.is_carboniocloud }
+Une fois ces prérequis disponibles, Zextras Services procède à la
+configuration de Carbonio Cloud conformément aux informations fournies
+par le client.
+\BLOCK{ endif }
+
+Zextras Services réalise ensuite le provisionnement initial des
+domaines, comptes utilisateurs, comptes fonctionnels, alias, listes de
+distribution et ressources à partir des informations fournies par le
+client. L'objectif est de disposer, avant toute migration massive,
+d'une plateforme de destination structurée conformément aux données de
+référence du système existant.
+
+\subsection{Validation du mécanisme de migration}
+Avant d'engager une récupération massive des données, Zextras Services
+réalise une première série de migrations sur un périmètre limité.
+
+Cette étape constitue un point de contrôle important du projet. Elle
+permet de vérifier le fonctionnement des accès à la plateforme source,
+la disponibilité des flux réseau, la capacité de la plateforme Carbonio
+à recevoir les données et, plus généralement, de valider la
+méthodologie de récupération retenue.
+
+Les premiers comptes migrés permettent également de contrôler la
+cohérence des données récupérées et d'identifier suffisamment tôt
+d'éventuelles particularités propres à la plateforme source.
+
+À l'issue de cette première récupération, le client effectue les
+contrôles fonctionnels nécessaires et valide la bonne reprise des
+données. Cette validation conditionne le passage à la phase de
+migration massive.
+
+\BLOCK{ if migration.is_onpremise }
+\subsection{Intégration du provisionnement au système d'information}
+Le client communique également à Zextras Services les besoins
+d'intégration de Carbonio au système d'information, notamment
+concernant les mécanismes de création, de modification ou de gestion
+automatisée des comptes, listes de distribution et ressources.
+
+Dans le cadre du projet, Zextras Services fournit et installe son
+script standard de provisionnement et de modification afin de permettre
+l'intégration des opérations de gestion des objets Carbonio aux
+processus définis avec le client.
+\BLOCK{ endif }
+
+\section{Migration massive des données}
+Une fois la méthode de migration validée, Zextras Services engage la
+phase de récupération massive des données. Cette opération est pilotée
+par l'orchestrateur de migration, qui permet de superviser l'avancement
+des traitements, de maîtriser la charge générée sur les plateformes
+source et destination et d'identifier les éventuelles anomalies
+nécessitant une analyse particulière.
+
+Zextras Services recommande, lorsque le contexte technique et
+organisationnel le permet, de privilégier une migration reposant sur
+une bascule unique de l'ensemble des utilisateurs. Cette approche
+permet de simplifier la période de transition, de limiter la durée de
+coexistence entre les deux plateformes de messagerie et de réduire les
+contraintes liées au routage des flux entre populations déjà migrées et
+populations restant sur l'environnement source.
+
+Cette stratégie est notamment rendue possible par le principe de
+préchargement des données~: la très grande majorité des données est
+transférée vers Carbonio en amont de la bascule, alors que les
+utilisateurs continuent à travailler sur la plateforme existante. La
+bascule peut ainsi être concentrée sur une fenêtre relativement courte,
+indépendamment du temps nécessaire au transfert initial de l'ensemble
+des données.
+
+Toutefois, le choix entre une bascule unique et une migration organisée
+en plusieurs lots dépend directement du contexte du projet. La
+volumétrie globale, le nombre de comptes, les performances et
+contraintes de la plateforme source, les capacités réseau disponibles,
+l'organisation du client, les éventuelles contraintes métiers ainsi que
+les modalités de coexistence entre les deux environnements peuvent
+conduire à privilégier une approche différente.
+
+La stratégie définitive de migration n'est donc pas figée au stade de
+l'avant-vente. Elle est analysée et validée conjointement avec le
+client lors de la phase de lancement et de cadrage du projet, sur la
+base des caractéristiques réelles de l'environnement et des contraintes
+identifiées.
+
+Lorsque les conditions le permettent, une bascule unique constitue
+l'approche privilégiée et recommandée par Zextras Services. Lorsque le
+contexte nécessite une migration progressive, les utilisateurs peuvent
+être répartis en plusieurs lots successifs. Dans le cadre de la
+prestation standard, cette organisation peut comprendre jusqu'à trois
+lots de migration.
+
+Quelle que soit la stratégie retenue, Zextras Services réalise en amont
+la récupération massive des données vers Carbonio. L'orchestrateur
+permet de suivre individuellement la progression des comptes et
+d'identifier les traitements terminés, en cours ou nécessitant une
+analyse complémentaire.
+
+À l'issue de cette récupération, le client réalise les contrôles
+prévus afin de valider la bonne présence des données sur la plateforme
+Carbonio. Cette validation constitue l'un des prérequis à l'engagement
+de la phase de bascule.
+
+Dans le cas d'une migration en plusieurs lots, ce processus de
+récupération, de contrôle et de validation est reproduit pour chacune
+des populations concernées, jusqu'à la bascule complète de l'ensemble
+des utilisateurs vers Carbonio.
+
+\subsection{Limitation de la période de coexistence}
+Dans le cas d'une migration réalisée en plusieurs lots, la période
+pendant laquelle les plateformes source et Carbonio fonctionnent
+simultanément doit être considérée comme une situation transitoire et
+non comme un mode de fonctionnement pérenne. Cette coexistence
+nécessite le maintien de mécanismes spécifiques de routage et de
+synchronisation entre les deux environnements, ce qui complexifie les
+flux de messagerie et augmente mécaniquement les dépendances techniques
+et les risques associés. Zextras Services recommande par conséquent de
+limiter autant que possible cette période et, de préférence, de ne pas
+dépasser une durée de trois mois entre la première et la dernière
+bascule. Au-delà, la multiplication et la complexité des flux ainsi que
+le maintien prolongé des mécanismes temporaires de migration ne
+permettent plus de garantir les conditions optimales de fonctionnement
+attendues pour une plateforme en situation nominale. La période de
+coexistence doit ainsi rester limitée au temps strictement nécessaire à
+la migration, l'objectif étant de finaliser la bascule de l'ensemble
+des utilisateurs vers Carbonio dans les délais définis lors du cadrage
+du projet.
+
+\section{Préchargement des données et limitation de l'impact utilisateur}
+La méthodologie de migration retenue vise à réaliser à minima 95~\% de
+la récupération des données avant la bascule des utilisateurs.
+
+Ce principe constitue un élément important de la stratégie de
+migration. Les boîtes aux lettres sont alimentées sur Carbonio alors
+que les utilisateurs continuent à travailler normalement sur leur
+messagerie actuelle. Les données continuent donc d'évoluer sur la
+plateforme source pendant que leur historique est progressivement
+transféré vers Carbonio.
+
+Cette approche permet de décorréler le temps nécessaire au transfert de
+volumes importants de données de la durée réelle de la bascule.
+
+Une boîte contenant plusieurs dizaines de gigaoctets peut par exemple
+nécessiter un temps important de transfert. Il n'est cependant pas
+nécessaire d'attendre la bascule pour commencer ce traitement~:
+l'essentiel de son contenu peut avoir été transféré plusieurs jours
+auparavant.
+
+Lorsque la grande majorité des données du lot est présente sur
+Carbonio et que les contrôles préalables ont été réalisés, le lot peut
+alors être basculé vers la nouvelle plateforme.
+
+\section{Bascule des utilisateurs et synchronisation différentielle}
+La bascule consiste à rediriger les flux de messagerie vers la nouvelle
+infrastructure Carbonio. Les opérations de modification nécessaires à
+cette redirection sont réalisées par le client, selon les modalités
+définies conjointement lors de la préparation du projet.
+
+Cette opération est quasiment immédiate et ne nécessite normalement pas
+d'interruption du service de messagerie. Une fois les flux redirigés,
+les nouveaux messages sont traités par Carbonio et les utilisateurs
+peuvent commencer à utiliser leur nouvelle plateforme.
+
+Au moment de leur première connexion à Carbonio, les utilisateurs
+disposent déjà de la très grande majorité de leurs données puisque
+celles-ci ont été préchargées lors des étapes précédentes.
+
+Immédiatement après la bascule, Zextras Services déclenche une
+synchronisation différentielle, ou synchronisation delta, destinée à
+récupérer les données créées ou modifiées sur la plateforme source
+depuis la dernière synchronisation.
+
+Les données les plus récentes apparaissent donc progressivement dans
+les comptes Carbonio après la bascule. La durée de cette synchronisation
+finale dépend notamment du nombre de comptes constituant le lot, du
+volume de données créé depuis la précédente synchronisation, des
+performances de la plateforme source et des capacités réseau
+disponibles. Dans les conditions habituelles, cette récupération
+complémentaire s'effectue dans les heures suivant la bascule.
+
+Cette méthode permet ainsi de réduire considérablement la fenêtre de
+migration visible par l'utilisateur~: le temps nécessaire au transfert
+de l'historique des messageries n'est pas assimilable à une durée
+d'indisponibilité du service.
+
+\BLOCK{ if migration.mco }
+Une fois la première bascule réalisée, la plateforme Carbonio est alors
+également considérée comme une plateforme de production. La première
+bascule déclenche alors le début du contrat de MCO.
+\BLOCK{ endif }
+
+\section{Contrôle et traitement des anomalies}
+Après chaque bascule, le client procède à la validation fonctionnelle
+de la reprise du lot concerné.
+
+Zextras Services supervise parallèlement les opérations de
+synchronisation et analyse les éventuelles anomalies détectées par
+l'orchestrateur de migration.
+
+L'expérience acquise sur les opérations de migration montre qu'une
+faible proportion des comptes peut nécessiter une analyse ou une
+intervention particulière. Selon la nature et l'hétérogénéité de
+l'environnement source, environ 2 à 4~\% des comptes peuvent présenter
+des anomalies nécessitant un traitement manuel ou une analyse technique
+complémentaire.
+
+Ces anomalies peuvent notamment être liées à certaines données
+particulières présentes dans la plateforme source, à des éléments ne
+pouvant être récupérés automatiquement, à des incohérences historiques
+ou à des erreurs rencontrées lors de la lecture ou de l'importation des
+données.
+
+Ces situations n'empêchent pas la poursuite de la migration des autres
+comptes. L'orchestrateur permet d'isoler les comptes concernés afin que
+les équipes de Zextras Services puissent procéder aux analyses et
+traitements nécessaires sans immobiliser l'ensemble du lot.
+
+Cette phase de bascule, synchronisation différentielle, validation et
+traitement des anomalies est reproduite pour chacun des lots prévus au
+projet.
+
+\section{Finalisation de la migration}
+Une fois l'ensemble des lots basculés, les synchronisations
+différentielles terminées et les éventuelles anomalies traitées,
+Zextras Services procède à la clôture technique du dispositif de
+migration.
+
+Les configurations temporaires ou spécifiques mises en place pour
+permettre la migration sont supprimées lorsqu'elles ne sont plus
+nécessaires. La plateforme Carbonio retrouve ainsi sa configuration
+nominale d'exploitation.
+
+Le client réalise alors les derniers contrôles fonctionnels et
+prononce la validation de fin de migration.
+
+Cette validation marque la fin du processus de migration et permet,
+selon l'organisation retenue pour le projet, d'engager les opérations
+de clôture, de période de vérification de service régulier ou de
+passage en exploitation.
+
+\section{Synthèse des responsabilités}
+
+\subsection{Actions attendues du client}
+\begin{itemize}[nosep]
+  \item Fournir les accès nécessaires à la messagerie source.
+  \item Fournir la liste des domaines de messagerie.
+  \item Fournir la liste des comptes et leurs attributs~: nom, prénom,
+    service, quota, nature du compte et autres informations nécessaires
+    au provisionnement.
+  \item Fournir la liste des alias.
+  \item Fournir la liste des listes de distribution et de leurs membres.
+  \item Fournir la liste des ressources.
+\BLOCK{ if migration.is_onpremise }
+  \item Mettre à disposition les machines virtuelles constituant
+    l'infrastructure Carbonio.
+  \item Fournir les accès nécessaires à l'infrastructure de destination.
+  \item Ouvrir les flux réseau nécessaires au fonctionnement de
+    Carbonio conformément aux spécifications communiquées.
+\BLOCK{ endif }
+  \item Ouvrir les flux entrants et sortants nécessaires aux opérations
+    de migration.
+\BLOCK{ if migration.is_onpremise }
+  \item Communiquer les besoins d'intégration et de provisionnement
+    avec le système d'information.
+\BLOCK{ endif }
+  \item Valider la récupération initiale utilisée pour qualifier la
+    méthode de migration.
+  \item Valider la bonne récupération des données après les
+    différentes phases de migration massive.
+  \item Réaliser la bascule des flux de messagerie vers Carbonio pour
+    chaque lot.
+  \item Valider la bonne reprise des utilisateurs après chaque bascule.
+  \item Valider la fin de la migration.
+\end{itemize}
+
+\subsection{Actions réalisées par Zextras Services}
+\begin{itemize}[nosep]
+  \item Définir et préparer la stratégie technique de migration.
+  \item Mettre en œuvre et configurer l'orchestrateur de migration.
+\BLOCK{ if migration.is_onpremise }
+  \item Installer et configurer la plateforme Carbonio.
+\BLOCK{ endif }
+\BLOCK{ if migration.is_saasdedie }
+  \item Installer et configurer la plateforme Carbonio.
+\BLOCK{ endif }
+  \item Provisionner les domaines, comptes, alias, listes de
+    distribution et ressources.
+  \item Réaliser les premières migrations de qualification.
+  \item Vérifier le fonctionnement de la chaîne technique de migration.
+\BLOCK{ if migration.is_onpremise }
+  \item Fournir et installer le script standard de provisionnement et
+    de modification des objets Carbonio.
+\BLOCK{ endif }
+  \item Organiser et piloter les opérations de migration par lots.
+  \item Réaliser la récupération massive des données avant la bascule
+    des utilisateurs.
+  \item Superviser l'avancement des migrations au travers de
+    l'orchestrateur.
+  \item Déclencher les synchronisations différentielles après chaque
+    bascule.
+  \item Contrôler techniquement le déroulement des opérations.
+  \item Identifier les comptes présentant des anomalies.
+  \item Analyser et traiter les anomalies nécessitant une intervention
+    technique.
+  \item Accompagner les différentes vagues de bascule.
+  \item Supprimer les configurations temporaires ou spécifiques mises
+    en œuvre pour la migration.
+  \item Procéder à la clôture technique des opérations de migration.
+\end{itemize}
+
+\section{RACI de la migration}
+Légende~: \textbf{\color{raciR}R} = Réalise l'action ·
+\textbf{\color{raciA}A} = Responsable de la validation / décision ·
+\textbf{\color{raciC}C} = Consulté ·
+\textbf{\color{raciI}I} = Informé
+
+{\small
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{|p{2.6cm}|p{5.4cm}|p{2.6cm}|p{2.6cm}|}
+\hline
+\rowcolor{primary}
+\tblhead{Phase} & \tblhead{Activité} & \tblhead{Client} & \tblhead{Zextras Services} \\
+\hline
+\endhead
+\BLOCK{ for row in migration_raci }
+\VAR{ row.phase } & \VAR{ row.activite } & \VAR{ row.client_raci } & \VAR{ row.zextras_raci } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+}
+
+\textbf{Responsabilité sur les données sources.} Le client reste
+responsable de l'exactitude et de l'exhaustivité des informations
+fournies à Zextras Services pour préparer la migration~: comptes,
+alias, listes de distribution, ressources, domaines et attributs
+associés. Zextras Services réalise le provisionnement et les opérations
+de migration sur la base de ces informations.
+
+\textbf{Responsabilité de la bascule.} Même si Zextras Services
+prépare, pilote et accompagne techniquement l'opération, la
+modification effective des flux de messagerie reste sous la
+responsabilité du client. La décision de GO/NO GO appartient également
+au client, sur la base des contrôles et éléments techniques fournis par
+Zextras Services.
