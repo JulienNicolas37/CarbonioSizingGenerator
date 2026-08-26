@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.0 — Infrastructure de qualification, bilan des besoins
+- **2 nouvelles questions** : "Faut-il prévoir une infrastructure de qualification ?", puis (si oui,
+  et seulement si la production a un palier HA > 0) "Faut-il prévoir les mêmes fonctions HA (proxy,
+  MTA, etc.) que la production sur la qualification ?"
+- **Nouveau catalogue `qualification_catalog.yaml`** : specs par défaut volontairement petites
+  (2 vCPU / 4-8 Go RAM / disques réduits), granulaires (mode HA-mirror) et combinées (mode minimal).
+- **Mode minimal (par défaut)** : 1 VM combinant tous les rôles DMZ (proxy+mta_in+mta_auth+mta_out),
+  1 VM combinant mesh+directory_master+database, 1 VM mailstore — 3 VM au total.
+- **Mode HA-mirror** : reprend exactement la structure du palier HA retenu en production (mêmes
+  groupes DMZ, même répartition des 3 VM Services), à taille qualification. Retombe automatiquement
+  sur le mode minimal si la production n'a pas de HA, même si le mode HA-mirror a été demandé — le
+  mode réellement appliqué est tracé dans `infra_resolved.qualification_mode`.
+- **Nouveau chapitre 5 "Infrastructure de qualification"** (uniquement si demandée) : dimensionnement
+  + schéma DMZ/LAN, même structure que le chapitre Prérequis techniques.
+- **Nouveau chapitre 6 "Bilan des besoins"** : tableau de synthèse Production / Qualification (si
+  active) / Total général, toutes ressources confondues (vCPU/RAM/disques/secondaire S3/backup).
+- **Réorganisation** : la section "Périmètre du document" est déplacée du chapitre 1 (Introduction et
+  cadrage) vers le chapitre 4 (Prérequis techniques), juste après le récapitulatif des besoins
+  exprimés, et renommée "Besoins fonctionnels".
+- Factorisation du traitement des nœuds (`_process_nodes`, `_diagram_for`) dans `generate_pdf.py`,
+  réutilisée à l'identique pour la production et la qualification.
+
 ## 0.5.0 — Stockage Objet/HSM, backups, périmètre fonctionnel
 - **Nouvelles questions (dans l'ordre)** : après "Stockage Objet activé ?" -> "Activer le module HSM
   (stockage secondaire S3) ?" (si Stockage Objet), puis si HSM actif "Rétention en jours sur le

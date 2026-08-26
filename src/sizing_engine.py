@@ -178,6 +178,82 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     return sizing
 
 
+def build_qualification_nodes(qual_catalog: dict, sizing_rules: dict,
+                                qualification_active: bool, ha_mirror: bool,
+                                prod_ha_tier: int) -> tuple:
+    """
+    Construit les nœuds d'une infrastructure de qualification, si demandée.
+    Retourne (nodes, mode_resolved) où mode_resolved vaut "ha_mirror",
+    "minimal" ou None (qualification non demandée) — reflète le mode
+    RÉELLEMENT appliqué (si ha_mirror est demandé mais que la prod n'a pas
+    de HA, on retombe sur "minimal", et mode_resolved le reflète).
+
+    Mode par défaut (minimal, sans HA) :
+      - 1 VM combinant tous les rôles DMZ (proxy + mta_in + mta_auth + mta_out)
+      - 1 VM combinant mesh + directory_master + database
+      - 1 VM mailstore
+    Mode "mêmes fonctions HA que la production" (si demandé ET si la
+    production a effectivement un palier HA > 0) :
+      - mêmes groupes DMZ que le palier HA retenu en production
+      - même répartition des 3 VM Services (mesh+master / mesh+replica / mesh+database)
+      - 1 VM mailstore (jamais mise à l'échelle, même en mode HA-mirror)
+    Toutes les tailles viennent de qualification_catalog.yaml (petites,
+    jamais des specs de production).
+    """
+    if not qualification_active:
+        return [], None
+
+    def qual_sizing(specs: dict) -> dict:
+        sizing = {
+            "vcpu": specs["vcpu"], "ram_gb": specs["ram_gb"],
+            "disk_os_gb": specs["disk_os_gb"], "disk_appli_gb": specs["disk_appli_gb"],
+        }
+        if "disk_store_gb" in specs:
+            sizing["disk_store_gb"] = specs["disk_store_gb"]
+        return sizing
+
+    nodes = []
+    use_ha_mirror = ha_mirror and prod_ha_tier > 0
+    mode_resolved = "ha_mirror" if use_ha_mirror else "minimal"
+
+    if use_ha_mirror:
+        tier = next(t for t in sizing_rules["ha_scaling"]["tiers"] if t["level"] == prod_ha_tier)
+        counters = {}
+        for group in tier["groups"]:
+            base_id = "qualif_" + (group.get("id_prefix") or "_".join(group["components"]))
+            for _ in range(group["count"]):
+                counters[base_id] = counters.get(base_id, 0) + 1
+                idx = counters[base_id]
+                node_id = f"{base_id}{idx:02d}" if group["count"] > 1 else base_id
+                nodes.append({
+                    "id": node_id, "zone": group["zone"], "components": group["components"],
+                    "sizing": qual_sizing(qual_catalog[group["components"][0]]),
+                })
+        for node_id, components in SERVICES_PATTERN:
+            nodes.append({
+                "id": f"qualif_{node_id}", "zone": "LAN", "components": components,
+                "sizing": qual_sizing(qual_catalog[components[-1]]),
+            })
+    else:
+        nodes.append({
+            "id": "qualif_proxy_mta", "zone": "DMZ",
+            "components": ["proxy", "mta_in", "mta_auth", "mta_out"],
+            "sizing": qual_sizing(qual_catalog["combined_dmz"]),
+        })
+        nodes.append({
+            "id": "qualif_services", "zone": "LAN",
+            "components": ["mesh", "directory_master", "database"],
+            "sizing": qual_sizing(qual_catalog["combined_services"]),
+        })
+
+    nodes.append({
+        "id": "qualif_mailstore01", "zone": "LAN", "components": ["mailbox"],
+        "sizing": qual_sizing(qual_catalog["mailbox"]),
+    })
+
+    return nodes, mode_resolved
+
+
 def build_nodes(client_config: dict, catalogs: dict,
                  ha_level_override: Optional[int] = None,
                  mailstore_count_override: Optional[int] = None) -> dict:
@@ -281,8 +357,17 @@ def build_nodes(client_config: dict, catalogs: dict,
             "sizing": _sizing_from_catalog(vm_catalog, "migration_factory"),
         })
 
+    # --- Infrastructure de qualification (optionnelle) ---
+    qualification_nodes, qualification_mode = build_qualification_nodes(
+        catalogs.get("qualification_catalog", {}), sizing_rules,
+        infra_in.get("qualification_active", False),
+        infra_in.get("qualification_ha_mirror", False),
+        ha_level,
+    )
+
     return {
         "nodes": nodes,
+        "qualification_nodes": qualification_nodes,
         "infra_resolved": {
             "ha_tier": ha_level,
             "ha_tier_suggestion": ha_suggestion.level,
@@ -290,5 +375,6 @@ def build_nodes(client_config: dict, catalogs: dict,
             "mailstore_count": mailstore_count,
             "mailstore_count_suggestion": mailstore_suggestion.count,
             "mailstore_reason": mailstore_suggestion.reason,
+            "qualification_mode": qualification_mode,   # "ha_mirror" | "minimal" | None
         },
     }

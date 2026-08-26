@@ -19,13 +19,14 @@ def load_yaml(path: Path) -> dict:
 
 
 def load_catalogs() -> dict:
-    """Charge les 5 catalogues programme."""
+    """Charge les catalogues programme."""
     return {
         "vm_catalog": load_yaml(CATALOGS_DIR / "vm_catalog.yaml"),
         "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
         "service_catalog": load_yaml(CATALOGS_DIR / "service_catalog.yaml"),
         "sizing_rules": load_yaml(CATALOGS_DIR / "sizing_rules.yaml"),
         "team_directory": load_yaml(CATALOGS_DIR / "team_directory.yaml"),
+        "qualification_catalog": load_yaml(CATALOGS_DIR / "qualification_catalog.yaml"),
     }
 
 

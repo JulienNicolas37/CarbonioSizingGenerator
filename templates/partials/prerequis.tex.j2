@@ -16,6 +16,15 @@ communiqués par le client~:
   \item Services demandés~: \VAR{ besoins.services_display }
 \end{itemize}
 
+\section{Besoins fonctionnels}
+Sont couverts par le présent document, sur la base des services
+retenus pour ce client~:
+\begin{itemize}[nosep]
+\BLOCK{ for item in perimetre_items }
+  \item \VAR{ item }
+\BLOCK{ endfor }
+\end{itemize}
+
 \section{Dimensionnement de l'infrastructure}
 Le tableau ci-dessous détaille les machines virtuelles nécessaires au
 déploiement, réparties entre la zone publique (DMZ) et la zone privée

@@ -65,9 +65,47 @@ def value_or_placeholder(value, label: str) -> str:
     return escape_latex(value)
 
 
+def _process_nodes(raw_nodes: list, component_labels: dict) -> tuple:
+    """Transforme une liste de nœuds bruts (config client) en (nodes
+    affichables, totals, composants vus) — factorisé pour être réutilisé
+    identiquement pour la production ET la qualification."""
+    nodes = []
+    totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0,
+              "disk_store_gb": 0, "disk_secondaire_gb": 0, "disk_backup_gb": 0}
+    components_seen = []
+    for n in raw_nodes:
+        sizing = n.get("sizing", {})
+        components_display = ", ".join(component_labels.get(c, c) for c in n.get("components", []))
+        nodes.append({
+            "id": escape_latex(n["id"]),
+            "zone": escape_latex(n["zone"]),
+            "components": n["components"],
+            "components_display": escape_latex(components_display),
+            "components_display_diagram": components_display,
+            "sizing": sizing,
+        })
+        for c in n.get("components", []):
+            if c not in components_seen:
+                components_seen.append(c)
+        for key in totals:
+            totals[key] += sizing.get(key, 0)
+    return nodes, totals, components_seen
+
+
+def _diagram_for(raw_nodes: list, component_labels: dict) -> str:
+    diagram_nodes = [
+        {
+            "id": n["id"],
+            "zone": n["zone"],
+            "components_display_diagram": ", ".join(component_labels.get(c, c) for c in n.get("components", [])),
+        }
+        for n in raw_nodes
+    ]
+    return build_tikz(zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[])
+
+
 def build_context(client_config: dict, catalogs: dict) -> dict:
     component_labels = catalogs["component_labels"]
-    component_descriptions = catalogs["component_descriptions"]
 
     client_raw = get_client(client_config)
     prestataire_raw = client_config.get("parties_prenantes", {}).get("prestataire", {})
@@ -88,48 +126,21 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         for rev in raw_revisions
     ]
 
-    nodes = []
-    totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0,
-              "disk_store_gb": 0, "disk_secondaire_gb": 0, "disk_backup_gb": 0}
-    all_components_seen = []
-    for n in client_config.get("nodes", []):
-        sizing = n.get("sizing", {})
-        components_display = ", ".join(
-            component_labels.get(c, c) for c in n.get("components", [])
-        )
-        nodes.append({
-            "id": escape_latex(n["id"]),
-            "zone": escape_latex(n["zone"]),
-            "components": n["components"],   # ids bruts, pour le diagramme
-            "components_display": escape_latex(components_display),
-            "components_display_diagram": components_display,  # utilisé tel quel par tikz_builder (police \scriptsize)
-            "sizing": sizing,
-        })
-        for c in n.get("components", []):
-            if c not in all_components_seen:
-                all_components_seen.append(c)
-        totals["vcpu"] += sizing.get("vcpu", 0)
-        totals["ram_gb"] += sizing.get("ram_gb", 0)
-        totals["disk_os_gb"] += sizing.get("disk_os_gb", 0)
-        totals["disk_appli_gb"] += sizing.get("disk_appli_gb", 0)
-        totals["disk_store_gb"] += sizing.get("disk_store_gb", 0)
-        totals["disk_secondaire_gb"] += sizing.get("disk_secondaire_gb", 0)
-        totals["disk_backup_gb"] += sizing.get("disk_backup_gb", 0)
+    nodes, totals, all_components_seen = _process_nodes(client_config.get("nodes", []), component_labels)
+    diagram_tikz_raw = _diagram_for(client_config.get("nodes", []), component_labels)
 
-    # tikz_builder échappe lui-même les ids/labels : on lui passe les valeurs
-    # BRUTES (pas celles déjà échappées pour le tableau LaTeX), sinon double
-    # échappement (ex. "proxy\_mta01" affiché tel quel).
-    diagram_nodes = [
-        {
-            "id": n["id"],
-            "zone": n["zone"],
-            "components_display_diagram": ", ".join(component_labels.get(c, c) for c in n.get("components", [])),
-        }
-        for n in client_config.get("nodes", [])
-    ]
-    diagram_tikz_raw = build_tikz(
-        zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[],
-    )
+    qualif_raw_nodes = client_config.get("qualification_nodes", [])
+    qualification_active = bool(qualif_raw_nodes)
+    qualif_nodes, qualif_totals, _ = _process_nodes(qualif_raw_nodes, component_labels)
+    diagram_tikz_raw_qualif = _diagram_for(qualif_raw_nodes, component_labels) if qualification_active else ""
+
+    bilan_totals = {key: totals[key] + qualif_totals[key] for key in totals}
+
+    infra_resolved = client_config.get("infra_resolved", {})
+    qualification = {
+        "active": qualification_active,
+        "mode": infra_resolved.get("qualification_mode") or "minimal",
+    }
 
     # --- Récapitulatif des besoins exprimés (chapitre "Prérequis techniques") ---
     active_services = [SERVICE_DISPLAY_LABELS[s] for s, v in client_config.get("services", {}).items()
@@ -161,10 +172,11 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         for label, description in CLASSIFICATION_LEVELS
     ]
 
-    # --- Périmètre du document : liste des FONCTIONS utilisateur activées
-    # (pas des composants d'infra) — reprend catalogs/carbonio_functions.yaml,
-    # dans l'ordre du fichier, en ne gardant que celles pertinentes pour ce
-    # client (toujours incluses, ou conditionnées par un service coché).
+    # --- Besoins fonctionnels (chapitre "Prérequis techniques") : liste des
+    # FONCTIONS utilisateur activées (pas des composants d'infra) — reprend
+    # catalogs/carbonio_functions.yaml, dans l'ordre du fichier, en ne
+    # gardant que celles pertinentes pour ce client (toujours incluses, ou
+    # conditionnées par un service coché).
     services_cfg = client_config.get("services", {})
     perimetre_items = []
     for func in catalogs["carbonio_functions"].values():
@@ -243,6 +255,11 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "classification_niveaux": classification_niveaux,
         "perimetre_items": perimetre_items,
         "zextras_contacts": zextras_contacts,
+        "qualification": qualification,
+        "qualif_nodes": qualif_nodes,
+        "qualif_totals": qualif_totals,
+        "diagram_tikz_raw_qualif": diagram_tikz_raw_qualif,
+        "bilan_totals": bilan_totals,
     }
 
 
@@ -258,6 +275,9 @@ def render_document(ctx: dict) -> str:
     carbonio_solution = (TEMPLATES_DIR / "carbonio_solution.tex").read_text(encoding="utf-8")  # statique
     prerequis = env.get_template("prerequis.tex.j2").render(**ctx)
     architecture = env.get_template("architecture.tex.j2").render(**ctx)
+    qualification = (env.get_template("qualification.tex.j2").render(**ctx)
+                      if ctx["qualification"]["active"] else "")
+    bilan_ressources = env.get_template("bilan_ressources.tex.j2").render(**ctx)
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
     # du chapitre 1 : rien sur la page de garde, l'historique des révisions
@@ -283,6 +303,8 @@ def render_document(ctx: dict) -> str:
         + carbonio_solution + "\n\n"
         + prerequis + "\n\n"
         + architecture + "\n\n"
+        + qualification + "\n\n"
+        + bilan_ressources + "\n\n"
         + "\\end{document}\n"
     )
 

@@ -70,6 +70,8 @@ infra:
   retention_days: 10
   backups: true
   backup_sur_s3: true
+  qualification_active: true
+  qualification_ha_mirror: true
 nodes:
 - id: proxy01
   zone: DMZ
@@ -141,7 +143,7 @@ nodes:
     disk_appli_gb: 90
 - id: services01
   zone: LAN
-  components:
+  components: &id005
   - mesh
   - directory_master
   sizing:
@@ -151,7 +153,7 @@ nodes:
     disk_appli_gb: 160
 - id: services02
   zone: LAN
-  components:
+  components: &id006
   - mesh
   - directory_replica
   sizing:
@@ -161,7 +163,7 @@ nodes:
     disk_appli_gb: 160
 - id: services03
   zone: LAN
-  components:
+  components: &id007
   - mesh
   - database
   sizing:
@@ -277,3 +279,103 @@ infra_resolved:
   mailstore_count: 5
   mailstore_count_suggestion: 5
   mailstore_reason: '25000 comptes (stockage Objet + HSM actifs : volumétrie non dimensionnante)'
+  qualification_mode: ha_mirror
+qualification_nodes:
+- id: qualif_proxy01
+  zone: DMZ
+  components: *id001
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_proxy02
+  zone: DMZ
+  components: *id001
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_auth01
+  zone: DMZ
+  components: *id002
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_auth02
+  zone: DMZ
+  components: *id002
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_in01
+  zone: DMZ
+  components: *id003
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_in02
+  zone: DMZ
+  components: *id003
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_out01
+  zone: DMZ
+  components: *id004
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mta_out02
+  zone: DMZ
+  components: *id004
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_services01
+  zone: LAN
+  components: *id005
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_services02
+  zone: LAN
+  components: *id006
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_services03
+  zone: LAN
+  components: *id007
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 20
+- id: qualif_mailstore01
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 2
+    ram_gb: 8
+    disk_os_gb: 20
+    disk_appli_gb: 50
+    disk_store_gb: 100

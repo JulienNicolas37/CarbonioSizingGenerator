@@ -1,0 +1,94 @@
+# catalogs/qualification_catalog.yaml
+# Specs par défaut pour une infrastructure de QUALIFICATION — volontairement
+# petites, pas dimensionnées pour de la charge réelle.
+#
+# Deux familles d'entrées :
+#  - specs GRANULAIRES (mêmes ids que vm_catalog.yaml) : utilisées si le
+#    mode "mêmes fonctions HA que la production" est choisi (mirroring de
+#    la structure prod, à taille réduite) ;
+#  - specs COMBINÉES (combined_dmz, combined_services) : utilisées dans le
+#    cas par défaut (minimal, sans HA) où plusieurs rôles cohabitent sur
+#    UNE seule VM.
+
+# --- Specs granulaires (mode HA-mirror) ---
+mesh:
+  zone: LAN
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+directory_master:
+  zone: LAN
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+directory_replica:
+  zone: LAN
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+database:
+  zone: LAN
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+proxy:
+  zone: DMZ
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+mta_in:
+  zone: DMZ
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+mta_auth:
+  zone: DMZ
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+mta_out:
+  zone: DMZ
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 20
+
+mailbox:
+  zone: LAN
+  vcpu: 2
+  ram_gb: 8
+  disk_os_gb: 20
+  disk_appli_gb: 50
+  disk_store_gb: 100
+
+# --- Specs combinées (mode minimal, par défaut) ---
+combined_dmz:
+  # 1 VM qui porte tous les rôles DMZ (proxy + mta_in + mta_auth + mta_out)
+  zone: DMZ
+  vcpu: 2
+  ram_gb: 4
+  disk_os_gb: 20
+  disk_appli_gb: 40
+
+combined_services:
+  # 1 VM qui porte mesh + directory_master + database (pas de réplique en
+  # qualification minimale)
+  zone: LAN
+  vcpu: 2
+  ram_gb: 8
+  disk_os_gb: 20
+  disk_appli_gb: 60

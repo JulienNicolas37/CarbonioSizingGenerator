@@ -48,6 +48,8 @@ infra:
   retention_days: null
   backups: true
   backup_sur_s3: false
+  qualification_active: true
+  qualification_ha_mirror: true
 nodes:
 - id: proxy_mta01
   zone: DMZ
@@ -128,3 +130,38 @@ infra_resolved:
   mailstore_count: 1
   mailstore_count_suggestion: 1
   mailstore_reason: 800 comptes / 1.5 To en stockage block
+  qualification_mode: minimal
+qualification_nodes:
+- id: qualif_proxy_mta
+  zone: DMZ
+  components:
+  - proxy
+  - mta_in
+  - mta_auth
+  - mta_out
+  sizing:
+    vcpu: 2
+    ram_gb: 4
+    disk_os_gb: 20
+    disk_appli_gb: 40
+- id: qualif_services
+  zone: LAN
+  components:
+  - mesh
+  - directory_master
+  - database
+  sizing:
+    vcpu: 2
+    ram_gb: 8
+    disk_os_gb: 20
+    disk_appli_gb: 60
+- id: qualif_mailstore01
+  zone: LAN
+  components:
+  - mailbox
+  sizing:
+    vcpu: 2
+    ram_gb: 8
+    disk_os_gb: 20
+    disk_appli_gb: 50
+    disk_store_gb: 100

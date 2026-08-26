@@ -40,10 +40,14 @@ def print_review(client_config: dict, result: dict) -> None:
           f"(suggestion : {infra['ha_tier_suggestion']} — {infra['ha_tier_reason']})")
     print(f"Mailstores retenu : {infra['mailstore_count']} "
           f"(suggestion : {infra['mailstore_count_suggestion']} — {infra['mailstore_reason']})")
-    print(f"Nombre total de nœuds : {len(result['nodes'])}")
+    print(f"Nombre total de nœuds (production) : {len(result['nodes'])}")
     for node in result["nodes"]:
         label = node.get("label", "")
         print(f"  - {node['id']:<20} [{node['zone']}] {node['components']} {label}")
+    if result["qualification_nodes"]:
+        print(f"\nNombre de nœuds (qualification) : {len(result['qualification_nodes'])}")
+        for node in result["qualification_nodes"]:
+            print(f"  - {node['id']:<20} [{node['zone']}] {node['components']}")
     print()
 
 
@@ -118,6 +122,22 @@ def run_interactive(catalogs: dict) -> dict:
         imap = questionary.confirm(
             "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
         ).ask()
+
+    # --- Infrastructure de qualification (optionnelle) ---
+    qualification_active = questionary.confirm(
+        "Faut-il prévoir une infrastructure de qualification ?", default=False
+    ).ask()
+    qualification_ha_mirror = False
+    if qualification_active:
+        # Aperçu du palier HA suggéré à ce stade (le choix définitif n'est
+        # confirmé qu'à la rétrospective) : la question de mirroring HA
+        # n'a de sens que si la production a effectivement de la HA.
+        ha_preview = suggest_ha_tier(comptes, imap, catalogs["sizing_rules"])
+        if ha_preview.level > 0:
+            qualification_ha_mirror = questionary.confirm(
+                "Faut-il prévoir les mêmes fonctions HA (proxy, MTA, etc.) "
+                "que la production sur la qualification ?", default=False
+            ).ask()
 
     # --- Parties prenantes côté prestataire (Zextras) ---
     # On sélectionne dans l'annuaire (catalogs/team_directory.yaml) pour
@@ -203,6 +223,8 @@ def run_interactive(catalogs: dict) -> dict:
             "retention_days": retention_days,
             "backups": backups,
             "backup_sur_s3": backup_sur_s3,
+            "qualification_active": qualification_active,
+            "qualification_ha_mirror": qualification_ha_mirror,
         },
     }
     return client_config
@@ -269,6 +291,7 @@ def main():
         print_review(client_config, result)
 
     client_config["nodes"] = result["nodes"]
+    client_config["qualification_nodes"] = result["qualification_nodes"]
     client_config["infra_resolved"] = result["infra_resolved"]
     # Fige les choix retenus, pour qu'une relecture ultérieure du fichier
     # (--client) sans repasser par la rétrospective reproduise le même résultat.
