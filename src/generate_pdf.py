@@ -265,12 +265,19 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     # --- Besoins fonctionnels (chapitre "Prérequis techniques") : liste des
     # FONCTIONS utilisateur activées (pas des composants d'infra) — reprend
     # catalogs/carbonio_functions.yaml, dans l'ordre du fichier, en ne
-    # gardant que celles pertinentes pour ce client (toujours incluses, ou
-    # conditionnées par un service coché).
+    # gardant que celles pertinentes pour ce client (toujours incluses,
+    # conditionnées par un service coché, ou par un booléen d'infra —
+    # ex. "sauvegarde" conditionnée par infra.backups).
     services_cfg = client_config.get("services", {})
+    infra_cfg = client_config.get("infra", {})
     perimetre_items = []
     for func in catalogs["carbonio_functions"].values():
-        if func.get("always") or services_cfg.get(func.get("service_key"), False):
+        applicable = (
+            func.get("always")
+            or services_cfg.get(func.get("service_key"), False)
+            or infra_cfg.get(func.get("infra_key"), False)
+        )
+        if applicable:
             perimetre_items.append(
                 escape_latex(func["label"]) + r" --- " + escape_latex(func["description"].strip())
             )
@@ -400,8 +407,8 @@ def render_document(ctx: dict) -> str:
         + prerequis + "\n\n"
         + architecture + "\n\n"
         + qualification + "\n\n"
-        + migration_methodology + "\n\n"
         + bilan_ressources + "\n\n"
+        + migration_methodology + "\n\n"
         + "\\end{document}\n"
     )
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.1 — Ajustements post-migration
+- **Ordre des chapitres** : "Bilan des besoins" passe avant "Méthodologie de migration" (était
+  l'inverse).
+- **Titre + tableau "Dimensionnement de l'infrastructure" sur la même page** : le titre de section et
+  le texte d'introduction sont désormais à l'intérieur du bloc `landscape`, donc sur la même page
+  physique que le tableau (au prix de pivoter avec lui à 90° — techniquement impossible de mélanger
+  portrait et paysage sur une seule page PDF).
+- **"Besoins fonctionnels"** : nouvelle entrée "Sauvegarde des données" (conditionnée par
+  `infra.backups`, pas par un service) qui présente le backup comme une fonctionnalité client,
+  au-delà de l'aspect technique — nouveau support `infra_key` dans `carbonio_functions.yaml` en plus
+  de `service_key`/`always`.
+- **Gras restauré** dans le chapitre "Méthodologie de migration" : ~20 passages en gras du document
+  source (mis en évidence de points clés : recommandations, seuils, responsabilités) avaient été
+  perdus lors de la retranscription — repérés précisément via les styles de caractères du fichier
+  ODT source et réintégrés en `\textbf{}`.
+
 ## 0.7.0 — Méthodologie de migration
 - **Nouvelle section `prestation`** (au niveau racine, distincte de `infra`) : `migration_included`,
   `destination_platform` (carboniocloud/onpremise/saasdedie), `mco_contract` — 3 nouvelles questions
