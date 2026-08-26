@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.2 — Catégorisation du stockage rendue modulable
+- La composition des catégories "disque rapide"/"disque lent"/"stockage Objet" (chapitre Bilan des
+  besoins) n'est plus codée en dur dans `generate_pdf.py` : elle vient désormais de
+  `sizing_rules.yaml` (nouvelle section `storage_categories`). Modifiable sans toucher au code —
+  ex. réaffecter quel champ de disque appartient à quelle catégorie, ou changer la règle de
+  rattachement du backup selon `infra.backup_sur_s3`.
+
 ## 0.6.1 — Lisibilité et catégorisation du stockage
 - Colonne "Backup" du tableau des prérequis : ajout du libellé "(S3)" quand le backup est sur
   stockage Objet (`infra.backup_sur_s3`), comme c'était déjà le cas pour "Secondaire (S3)"

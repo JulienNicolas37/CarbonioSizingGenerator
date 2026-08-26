@@ -183,6 +183,24 @@ standalone_nodes:
     components: [videoconf]
     zone: DMZ
 
+storage_categories:
+  # Catégories de synthèse utilisées dans le chapitre "Bilan des besoins"
+  # (regroupement des colonnes disque détaillées du chapitre "Prérequis
+  # techniques"). Modifiable ici sans toucher au code : chaque catégorie
+  # liste les champs de sizing (nodes[].sizing.*) qui la composent.
+  categories:
+    disque_rapide:
+      fields: [disk_os_gb, disk_appli_gb]
+    disque_lent:
+      fields: [disk_store_gb]
+    stockage_objet:
+      fields: [disk_secondaire_gb]
+  # Le champ de backup est traité à part : sa catégorie dépend de
+  # infra.backup_sur_s3 (pas une composition fixe comme les autres).
+  backup_field: disk_backup_gb
+  backup_category_if_s3: stockage_objet
+  backup_category_if_not_s3: disque_lent
+
 optional_components:
   # Composants activés par une question dédiée du questionnaire, pas par
   # la liste de services standard.

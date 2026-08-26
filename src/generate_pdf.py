@@ -104,21 +104,21 @@ def _diagram_for(raw_nodes: list, component_labels: dict) -> str:
     return build_tikz(zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[])
 
 
-def categorize_storage(totals: dict, backup_sur_s3: bool) -> dict:
+def categorize_storage(totals: dict, backup_sur_s3: bool, storage_rules: dict) -> dict:
     """Regroupe les colonnes disque détaillées (chapitre "Prérequis
-    techniques") en 3 catégories de synthèse pour le "Bilan des besoins" :
-      - disque rapide : OS + Appli (performance)
-      - disque lent : Store (block, volumineux) + Backup si NON sur S3
-      - stockage Objet (S3) : Secondaire (HSM) + Backup si sur S3
-    """
-    backup_gb = totals.get("disk_backup_gb", 0)
-    backup_on_s3 = backup_gb if backup_sur_s3 else 0
-    backup_on_block = 0 if backup_sur_s3 else backup_gb
-    return {
-        "disque_rapide": totals.get("disk_os_gb", 0) + totals.get("disk_appli_gb", 0),
-        "disque_lent": totals.get("disk_store_gb", 0) + backup_on_block,
-        "stockage_objet": totals.get("disk_secondaire_gb", 0) + backup_on_s3,
-    }
+    techniques") en catégories de synthèse pour le "Bilan des besoins".
+    La composition de chaque catégorie vient de sizing_rules.yaml
+    (storage_categories) — modifiable sans toucher au code."""
+    backup_field = storage_rules.get("backup_field", "disk_backup_gb")
+    backup_category = (storage_rules.get("backup_category_if_s3") if backup_sur_s3
+                        else storage_rules.get("backup_category_if_not_s3"))
+    result = {}
+    for cat_name, cat_def in storage_rules.get("categories", {}).items():
+        total = sum(totals.get(f, 0) for f in cat_def.get("fields", []))
+        if cat_name == backup_category:
+            total += totals.get(backup_field, 0)
+        result[cat_name] = total
+    return result
 
 
 def build_context(client_config: dict, catalogs: dict) -> dict:
@@ -154,10 +154,11 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     bilan_totals = {key: totals[key] + qualif_totals[key] for key in totals}
 
     backup_sur_s3 = client_config.get("infra", {}).get("backup_sur_s3", False)
+    storage_rules = catalogs["sizing_rules"]["storage_categories"]
     storage_categories = {
-        "production": categorize_storage(totals, backup_sur_s3),
-        "qualification": categorize_storage(qualif_totals, False),  # jamais de backup en qualif
-        "bilan": categorize_storage(bilan_totals, backup_sur_s3),
+        "production": categorize_storage(totals, backup_sur_s3, storage_rules),
+        "qualification": categorize_storage(qualif_totals, False, storage_rules),  # jamais de backup en qualif
+        "bilan": categorize_storage(bilan_totals, backup_sur_s3, storage_rules),
     }
 
     infra_resolved = client_config.get("infra_resolved", {})
@@ -345,6 +346,7 @@ def main():
         "component_labels": load_yaml(CATALOGS_DIR / "component_labels.yaml"),
         "component_descriptions": load_yaml(CATALOGS_DIR / "component_descriptions.yaml"),
         "carbonio_functions": load_yaml(CATALOGS_DIR / "carbonio_functions.yaml"),
+        "sizing_rules": load_yaml(CATALOGS_DIR / "sizing_rules.yaml"),
     }
 
     if "nodes" not in client_config:
