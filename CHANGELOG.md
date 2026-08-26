@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.3 — Correctif en-tête colonne Backup
+- Tableau "Dimensionnement de l'infrastructure" : l'en-tête de la colonne "Backup" affiche désormais
+  "(S3)" quand `infra.backup_sur_s3` est actif, comme c'est déjà le cas pour "Secondaire (S3)" —
+  jusqu'ici seule chaque cellule portait la mention, pas l'en-tête.
+
 ## 0.6.2 — Catégorisation du stockage rendue modulable
 - La composition des catégories "disque rapide"/"disque lent"/"stockage Objet" (chapitre Bilan des
   besoins) n'est plus codée en dur dans `generate_pdf.py` : elle vient désormais de

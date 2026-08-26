@@ -37,7 +37,7 @@ déploiement, réparties entre la zone publique (DMZ) et la zone privée
 \begin{longtable}{|p{2.6cm}|p{1cm}|p{3.4cm}|p{0.9cm}|p{1.3cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{2cm}|p{2cm}|}
 \hline
 \rowcolor{primary}
-\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{OS} & \tblhead{Appli} & \tblhead{Store} & \tblhead{Secondaire (S3)} & \tblhead{Backup} \\
+\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{OS} & \tblhead{Appli} & \tblhead{Store} & \tblhead{Secondaire (S3)} & \tblhead{Backup\BLOCK{ if besoins.backup_sur_s3 } (S3)\BLOCK{ endif }} \\
 \hline
 \endhead
 \BLOCK{ for n in nodes }
