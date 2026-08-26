@@ -1,24 +1,27 @@
 \chapter{Bilan des besoins}
 
 Le tableau ci-dessous synthétise l'ensemble des ressources nécessaires,
-tous environnements confondus.
+tous environnements confondus. Le stockage est regroupé en trois
+catégories~: disque rapide (OS + applicatif), disque lent (données
+volumineuses en stockage block~: mailstore, backup s'il n'est pas sur
+S3), et stockage Objet S3 (secondaire HSM, backup s'il est sur S3).
 
 {\small
 \renewcommand{\arraystretch}{1.3}
-\begin{longtable}{|p{2.7cm}|p{1.1cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{1.9cm}|p{1.5cm}|}
+\begin{longtable}{|p{3.2cm}|p{1.5cm}|p{1.8cm}|p{2.4cm}|p{2.4cm}|p{2.6cm}|}
 \hline
 \rowcolor{primary}
-\tblhead{Environnement} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{Disque OS} & \tblhead{Disque Appli} & \tblhead{Disque Store} & \tblhead{Secondaire (S3)} & \tblhead{Backup} \\
+\tblhead{Environnement} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{Disque rapide} & \tblhead{Disque lent} & \tblhead{Stockage Objet (S3)} \\
 \hline
 \endhead
-Production & \VAR{ totals.vcpu } & \VAR{ totals.ram_gb } Go & \VAR{ totals.disk_os_gb } Go & \VAR{ totals.disk_appli_gb } Go & \VAR{ totals.disk_store_gb } Go & \BLOCK{ if totals.disk_secondaire_gb }\VAR{ totals.disk_secondaire_gb } Go\BLOCK{ else }---\BLOCK{ endif } & \BLOCK{ if totals.disk_backup_gb }\VAR{ totals.disk_backup_gb } Go\BLOCK{ else }---\BLOCK{ endif } \\
+Production & \VAR{ totals.vcpu } & \VAR{ totals.ram_gb } Go & \VAR{ storage_categories.production.disque_rapide } Go & \VAR{ storage_categories.production.disque_lent } Go & \BLOCK{ if storage_categories.production.stockage_objet }\VAR{ storage_categories.production.stockage_objet } Go\BLOCK{ else }---\BLOCK{ endif } \\
 \hline
 \BLOCK{ if qualification.active }
-Qualification & \VAR{ qualif_totals.vcpu } & \VAR{ qualif_totals.ram_gb } Go & \VAR{ qualif_totals.disk_os_gb } Go & \VAR{ qualif_totals.disk_appli_gb } Go & \VAR{ qualif_totals.disk_store_gb } Go & --- & --- \\
+Qualification & \VAR{ qualif_totals.vcpu } & \VAR{ qualif_totals.ram_gb } Go & \VAR{ storage_categories.qualification.disque_rapide } Go & \VAR{ storage_categories.qualification.disque_lent } Go & --- \\
 \hline
 \BLOCK{ endif }
 \rowcolor{lightbg}
-\textbf{Total général} & \textbf{\VAR{ bilan_totals.vcpu }} & \textbf{\VAR{ bilan_totals.ram_gb } Go} & \textbf{\VAR{ bilan_totals.disk_os_gb } Go} & \textbf{\VAR{ bilan_totals.disk_appli_gb } Go} & \textbf{\VAR{ bilan_totals.disk_store_gb } Go} & \textbf{\BLOCK{ if bilan_totals.disk_secondaire_gb }\VAR{ bilan_totals.disk_secondaire_gb } Go\BLOCK{ else }---\BLOCK{ endif }} & \textbf{\BLOCK{ if bilan_totals.disk_backup_gb }\VAR{ bilan_totals.disk_backup_gb } Go\BLOCK{ else }---\BLOCK{ endif }} \\
+\textbf{Total général} & \textbf{\VAR{ bilan_totals.vcpu }} & \textbf{\VAR{ bilan_totals.ram_gb } Go} & \textbf{\VAR{ storage_categories.bilan.disque_rapide } Go} & \textbf{\VAR{ storage_categories.bilan.disque_lent } Go} & \textbf{\BLOCK{ if storage_categories.bilan.stockage_objet }\VAR{ storage_categories.bilan.stockage_objet } Go\BLOCK{ else }---\BLOCK{ endif }} \\
 \hline
 \end{longtable}
 }

@@ -104,6 +104,23 @@ def _diagram_for(raw_nodes: list, component_labels: dict) -> str:
     return build_tikz(zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[])
 
 
+def categorize_storage(totals: dict, backup_sur_s3: bool) -> dict:
+    """Regroupe les colonnes disque détaillées (chapitre "Prérequis
+    techniques") en 3 catégories de synthèse pour le "Bilan des besoins" :
+      - disque rapide : OS + Appli (performance)
+      - disque lent : Store (block, volumineux) + Backup si NON sur S3
+      - stockage Objet (S3) : Secondaire (HSM) + Backup si sur S3
+    """
+    backup_gb = totals.get("disk_backup_gb", 0)
+    backup_on_s3 = backup_gb if backup_sur_s3 else 0
+    backup_on_block = 0 if backup_sur_s3 else backup_gb
+    return {
+        "disque_rapide": totals.get("disk_os_gb", 0) + totals.get("disk_appli_gb", 0),
+        "disque_lent": totals.get("disk_store_gb", 0) + backup_on_block,
+        "stockage_objet": totals.get("disk_secondaire_gb", 0) + backup_on_s3,
+    }
+
+
 def build_context(client_config: dict, catalogs: dict) -> dict:
     component_labels = catalogs["component_labels"]
 
@@ -135,6 +152,13 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
     diagram_tikz_raw_qualif = _diagram_for(qualif_raw_nodes, component_labels) if qualification_active else ""
 
     bilan_totals = {key: totals[key] + qualif_totals[key] for key in totals}
+
+    backup_sur_s3 = client_config.get("infra", {}).get("backup_sur_s3", False)
+    storage_categories = {
+        "production": categorize_storage(totals, backup_sur_s3),
+        "qualification": categorize_storage(qualif_totals, False),  # jamais de backup en qualif
+        "bilan": categorize_storage(bilan_totals, backup_sur_s3),
+    }
 
     infra_resolved = client_config.get("infra_resolved", {})
     qualification = {
@@ -260,6 +284,7 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "qualif_totals": qualif_totals,
         "diagram_tikz_raw_qualif": diagram_tikz_raw_qualif,
         "bilan_totals": bilan_totals,
+        "storage_categories": storage_categories,
     }
 
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.1 — Lisibilité et catégorisation du stockage
+- Colonne "Backup" du tableau des prérequis : ajout du libellé "(S3)" quand le backup est sur
+  stockage Objet (`infra.backup_sur_s3`), comme c'était déjà le cas pour "Secondaire (S3)"
+- Tableau "Dimensionnement de l'infrastructure" (production) : saut de page avant le tableau, et
+  page entière en orientation paysage (`pdflscape`) pour une meilleure lisibilité sur les nombreuses
+  colonnes
+- Chapitre "Bilan des besoins" : le stockage est désormais regroupé en 3 catégories de synthèse
+  (disque rapide = OS + Appli, disque lent = Store + Backup si pas sur S3, stockage Objet S3 =
+  Secondaire HSM + Backup si sur S3), plus lisible qu'un détail colonne par colonne à ce niveau de
+  synthèse. Nouvelle fonction `categorize_storage()` dans `generate_pdf.py`.
+
 ## 0.6.0 — Infrastructure de qualification, bilan des besoins
 - **2 nouvelles questions** : "Faut-il prévoir une infrastructure de qualification ?", puis (si oui,
   et seulement si la production a un palier HA > 0) "Faut-il prévoir les mêmes fonctions HA (proxy,
