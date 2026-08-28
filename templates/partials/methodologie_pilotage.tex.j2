@@ -1,0 +1,155 @@
+\chapter{Méthodologie de pilotage du projet}
+
+Zextras Services met en œuvre une méthodologie de pilotage destinée à
+assurer un suivi régulier et partagé de l'ensemble des étapes du
+projet, depuis son lancement jusqu'à la mise en production de la
+plateforme Carbonio et la finalisation des opérations de migration.
+
+\section{Réunion de lancement --- Kick-off}
+Le projet débute par une \textbf{réunion de lancement (Kick-off)}
+réunissant les principaux interlocuteurs du client et de Zextras
+Services. Cette réunion permet de confirmer le périmètre de la
+prestation, de présenter les différents intervenants et leurs
+responsabilités, de partager les principales étapes du projet et de
+valider les modalités de pilotage.
+
+\BLOCK{ if not migration.included }
+Le Kick-off permet également de reprendre les hypothèses établies lors
+de la phase d'avant-vente et de les confronter aux éléments techniques
+et organisationnels disponibles au démarrage du projet. Les prérequis
+nécessaires à la construction de la plateforme, les accès, les flux
+réseau, les dépendances vis-à-vis du système d'information du client.
+\BLOCK{ endif }
+\BLOCK{ if migration.included }
+Le Kick-off permet également de reprendre les hypothèses établies lors
+de la phase d'avant-vente et de les confronter aux éléments techniques
+et organisationnels disponibles au démarrage du projet. Les prérequis
+nécessaires à la configuration de la plateforme, les accès, les flux
+réseau, les dépendances vis-à-vis du système d'information du client
+ainsi que les contraintes liées à la migration sont notamment examinées
+à cette occasion.
+
+La stratégie de migration est également précisée lors de cette phase.
+Zextras Services et le client déterminent notamment si les conditions
+permettent de privilégier une \textbf{bascule unique}, conformément à
+l'approche recommandée par Zextras Services, ou si les contraintes du
+projet nécessitent une organisation en plusieurs lots.
+\BLOCK{ endif }
+
+À l'issue de cette réunion, les différentes parties disposent ainsi
+d'une vision commune du projet, de ses objectifs, de ses principales
+échéances et des actions nécessaires à son démarrage opérationnel.
+
+\section{Suivi hebdomadaire du projet}
+\BLOCK{ if migration.included }
+À compter de la réunion de Kick-off, Zextras Services organise avec le
+client un \textbf{point de suivi projet hebdomadaire}. Cette réunion
+constitue le rendez-vous régulier de pilotage pendant les phases de
+construction de l'infrastructure Carbonio, de préparation de la
+migration et de migration des données.
+\BLOCK{ endif }
+\BLOCK{ if not migration.included }
+À compter de la réunion de Kick-off, Zextras Services organise avec le
+client un \textbf{point de suivi projet hebdomadaire}. Cette réunion
+constitue le rendez-vous régulier de pilotage pendant les phases de
+construction de l'infrastructure Carbonio et de la mise en ordre de
+marche de la plateforme.
+\BLOCK{ endif }
+
+L'objectif de ce point hebdomadaire est de disposer d'une vision
+partagée de l'état d'avancement du projet et de permettre aux
+différentes parties d'identifier rapidement les éventuels écarts,
+dépendances ou difficultés susceptibles d'avoir un impact sur le
+planning.
+
+Le point projet permet notamment de suivre l'avancement des actions
+engagées depuis la réunion précédente, de vérifier la disponibilité des
+prérequis attendus, de présenter les travaux réalisés par Zextras
+Services et ceux restant à effectuer, ainsi que de suivre les actions
+relevant du client.
+
+Les éventuels points bloquants ou risques identifiés sont également
+examinés afin de déterminer les actions correctives nécessaires, leurs
+responsables et, lorsque cela est nécessaire, leur impact sur les
+prochaines échéances.
+
+À l'approche des étapes structurantes du projet, qualification de la
+plateforme, lancement des migrations massives, décision de bascule ou
+mise en production, ces réunions permettent également de vérifier que
+les conditions nécessaires au passage à l'étape suivante sont réunies.
+
+\section{Adaptation de la fréquence au calendrier du projet}
+Le rythme hebdomadaire constitue la fréquence de référence pour les
+projets dont la réalisation intervient dans un calendrier relativement
+rapproché.
+
+Lorsque la date prévisionnelle de réalisation ou de mise en production
+se situe à \textbf{six mois ou plus après le lancement du projet},
+maintenir systématiquement une réunion hebdomadaire pendant les
+périodes de faible activité ne présente pas nécessairement de valeur
+pour les équipes.
+
+Dans ce cas, la fréquence des réunions peut être adaptée conjointement
+entre le client et Zextras Services. Des points plus espacés peuvent
+être organisés pendant les phases d'attente ou de préparation, puis le
+rythme hebdomadaire est rétabli lorsque le projet entre dans sa phase
+active de construction et de migration (si une migration doit être
+réalisée).
+
+Cette organisation permet de conserver un pilotage proportionné à
+l'activité réelle du projet tout en maintenant une fréquence de suivi
+renforcée pendant les périodes critiques.
+
+\section{Pilotage par les actions et les jalons}
+Chaque réunion de suivi s'appuie sur les actions et jalons du projet.
+Les actions nécessitant une intervention du client ou de Zextras
+Services sont identifiées, affectées et suivies jusqu'à leur
+réalisation.
+
+Une attention particulière est portée aux éléments susceptibles de
+conditionner la poursuite du projet~: mise à disposition des
+infrastructures, ouverture des flux, disponibilité des accès,
+fourniture des données nécessaires au provisionnement, validation des
+tests de migration ou encore préparation de la bascule.
+
+Cette méthode permet de rendre visibles suffisamment tôt les
+éventuelles dépendances et d'éviter qu'un prérequis non satisfait ne
+soit découvert au moment d'une opération critique.
+
+Les principales décisions prises au cours du projet, notamment celles
+concernant l'architecture, la stratégie de migration, le planning ou
+les modalités de bascule, sont également tracées afin de conserver une
+vision commune et cohérente des orientations retenues.
+
+\section{Accompagnement jusqu'à la mise en production}
+\BLOCK{ if not migration.included }
+Le pilotage projet se poursuit pendant l'ensemble des phases de
+construction jusqu'à la mise en production de la plateforme.
+
+À mesure que le projet avance, les points de suivi évoluent
+naturellement d'un suivi principalement consacré à la construction et
+aux prérequis vers un pilotage davantage centré sur la prise en main de
+la plateforme et le traitement des éventuelles anomalies.
+\BLOCK{ endif }
+\BLOCK{ if migration.included }
+Le pilotage projet se poursuit pendant l'ensemble des phases de
+construction et de migration jusqu'à la mise en production de la
+plateforme.
+
+À mesure que le projet avance, les points de suivi évoluent
+naturellement d'un suivi principalement consacré à la construction et
+aux prérequis vers un pilotage davantage centré sur la migration, les
+validations, la préparation de la bascule et le traitement des
+éventuelles anomalies.
+\BLOCK{ endif }
+
+Cette continuité permet à Zextras Services et au client de conserver
+\textbf{un même cadre de gouvernance depuis le Kick-off jusqu'à la
+finalisation du projet}, tout en adaptant le contenu des échanges aux
+différentes étapes.
+
+L'objectif est de disposer d'un pilotage simple et pragmatique~:
+\textbf{un rendez-vous régulier, des responsabilités clairement
+identifiées, des actions suivies et des décisions partagées}, afin de
+sécuriser le calendrier et d'anticiper autant que possible les
+difficultés avant qu'elles n'affectent les étapes critiques du projet.

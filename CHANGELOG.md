@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.8.0 — Méthodologie de pilotage du projet
+- **Nouveau chapitre "Méthodologie de pilotage du projet"** (toujours en dernière position du
+  document) : reprend le document fourni par Julien (Kick-off, suivi hebdomadaire, adaptation de la
+  fréquence, pilotage par actions/jalons, accompagnement jusqu'à la mise en production), avec du
+  contenu conditionné à la présence d'une migration (balises `<migration>`/`<!migration>` du document
+  source, traduites en blocs Jinja — mêmes coquilles de balises repérées et corrigées que sur le
+  chapitre précédent).
+- **Visibilité du chapitre** : affiché si contrat de MCO, migration incluse, OU plateforme de
+  destination non On Premise (CarbonioCloud/SaaS dédié assimilés à du SaaS) — HYPOTHÈSE à confirmer
+  avec Julien sur la définition exacte de "SaaS" dans ce contexte.
+- Gras du document source restauré (6 passages : "réunion de lancement (Kick-off)", "bascule
+  unique", "point de suivi projet hebdomadaire", "six mois ou plus après le lancement du projet",
+  "un même cadre de gouvernance...", phrase de conclusion sur le pilotage).
+- Testé : chapitre absent quand aucune des 3 conditions n'est vraie (migration=non, MCO=non,
+  plateforme=onpremise).
+
 ## 0.7.1 — Ajustements post-migration
 - **Ordre des chapitres** : "Bilan des besoins" passe avant "Méthodologie de migration" (était
   l'inverse).

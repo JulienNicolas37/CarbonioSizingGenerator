@@ -215,6 +215,12 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "mco": prestation["mco_contract"],
     }
 
+    # Chapitre "Méthodologie de pilotage du projet" : affiché si contrat de
+    # MCO, migration incluse, OU plateforme non On Premise (CarbonioCloud/
+    # SaaS dédié assimilés à une forme de SaaS) — HYPOTHÈSE à confirmer.
+    is_saas_like = destination_platform_raw in ("carboniocloud", "saasdedie")
+    pilotage_active = prestation["mco_contract"] or prestation["migration_included"] or is_saas_like
+
     # Tableau RACI de la migration : n'inclut une ligne taguée que si elle
     # correspond à la plateforme de destination retenue ; les lignes non
     # taguées s'affichent toujours. Lettres RACI mises en forme (couleurs)
@@ -361,6 +367,7 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "prestation": prestation,
         "migration": migration,
         "migration_raci": migration_raci,
+        "pilotage_active": pilotage_active,
     }
 
 
@@ -380,6 +387,8 @@ def render_document(ctx: dict) -> str:
                       if ctx["qualification"]["active"] else "")
     migration_methodology = (env.get_template("migration_methodology.tex.j2").render(**ctx)
                               if ctx["migration"]["included"] else "")
+    methodologie_pilotage = (env.get_template("methodologie_pilotage.tex.j2").render(**ctx)
+                              if ctx["pilotage_active"] else "")
     bilan_ressources = env.get_template("bilan_ressources.tex.j2").render(**ctx)
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
@@ -409,6 +418,7 @@ def render_document(ctx: dict) -> str:
         + qualification + "\n\n"
         + bilan_ressources + "\n\n"
         + migration_methodology + "\n\n"
+        + methodologie_pilotage + "\n\n"
         + "\\end{document}\n"
     )
 
