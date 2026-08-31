@@ -73,7 +73,7 @@ visio:
 sauvegarde:
   label: "Sauvegarde des données"
   description: >
-    Au-delà de l'aspect technique, la sauvegarde régulière des données
+    Le module de sauvegarde permet la sauvegarde régulière des données
     de messagerie protège contre une perte accidentelle, une erreur de
     manipulation ou un incident technique, avec une capacité de
     restauration adaptée à la politique de rétention retenue pour ce
