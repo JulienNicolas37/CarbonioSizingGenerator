@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.9.1 — Correctifs de mise en page du Gantt
+- **Cause racine identifiée empiriquement** : dans ce document, l'espace utile disponible à l'intérieur
+  de `\begin{landscape}` fait environ 16,4 cm à la fois en largeur ET en hauteur (`\textwidth` et
+  `\textheight` valent la même chose dans ce contexte precis — pas un simple échange des deux comme
+  on pourrait s'y attendre). Vérifié en imprimant `\the\textwidth`/`\the\textheight` à l'intérieur
+  de l'environnement.
+- **Gantt trop étroit** : la largeur des colonnes est maintenant calculée dynamiquement pour occuper
+  la largeur utile réelle (~14,5 cm avec marge de sécurité), au lieu d'une largeur fixe minuscule.
+- **Table de charge qui débordait** : largeur des colonnes et nombre de jours par page recalculés sur
+  la base de la vraie largeur utile (16 jours par page à 0,75 cm, au lieu de 26 jours à 0,7 cm qui
+  dépassait largement).
+- **Premières tâches chevauchant les dates d'en-tête** : hauteur de titre du Gantt augmentée pour
+  laisser assez de place aux dates pivotées à 90°, qui touchaient les barres de groupe juste en
+  dessous.
+
 ## 0.9.0 — Planning de migration (Gantt)
 - **Nouveau chapitre "Planning de migration"** (tout dernier chapitre du document, affiché uniquement
   si migration incluse ET les nouvelles questions de planning ont été renseignées) : diagramme

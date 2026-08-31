@@ -42,13 +42,18 @@ def build_day_index(calendar, date_debut, date_fin) -> dict:
 
 def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, max_rows_per_page: int = 34) -> list:
     """Construit le diagramme pgfgantt, découpé en plusieurs pages si le
-    nombre de lignes dépasse ce qui tient sur une page paysage (la
-    hauteur utile en paysage est contrainte par l'ancienne LARGEUR de
-    page, ~16 cm avec nos marges — pas la hauteur, d'où la pagination
-    par groupes complets plutôt qu'un simple redimensionnement).
-    Retourne une LISTE de fragments LaTeX, un par page."""
+    nombre de lignes dépasse ce qui tient sur une page. NB (vérifié
+    empiriquement) : dans ce document, l'espace utile disponible à
+    l'intérieur de \\begin{landscape} est d'environ 16,4 cm à la fois en
+    largeur ET en hauteur (\\textwidth == \\textheight dans ce contexte
+    précis, pas un simple échange des deux comme on pourrait s'y
+    attendre) — d'où le calcul de x_unit ci-dessous et le
+    max_rows_per_page inchangé. Retourne une LISTE de fragments LaTeX,
+    un par page."""
+    AVAILABLE_CM = 14.5  # 16,4 cm avec marge de sécurité
     day_index = build_day_index(calendar, date_debut_projet, date_fin_projet)
     total_days = max(day_index.values()) if day_index else 1
+    x_unit_cm = min(0.5, max(0.1, AVAILABLE_CM / total_days))
 
     title_cells = []
     for d, idx in sorted(day_index.items(), key=lambda kv: kv[1]):
@@ -141,10 +146,10 @@ def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, ma
     milestone label font=\\bfseries\\scriptsize,
     bar height=0.45,
     group height=0.45,
-    title height=1.6,
+    title height=4,
     link/.style={{-{{Stealth[length=5pt]}}, thick, draw=gray}},
 }}
-\\begin{{ganttchart}}[hgrid, vgrid, x unit=0.16cm, y unit chart=0.42cm]{{1}}{{{total_days}}}
+\\begin{{ganttchart}}[hgrid, vgrid, x unit={x_unit_cm}cm, y unit chart=0.42cm]{{1}}{{{total_days}}}
 {title_row} \\\\
 {body}
 
@@ -155,12 +160,12 @@ def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, ma
 
 
 def build_charge_table(load: dict, calendar, date_debut_projet, date_fin_projet, seuils: dict,
-                        max_days_per_page: int = 26) -> list:
-    """Construit la/les table(s) paysage de charge par ressource et par
-    jour (1 ligne par ressource). Découpée en plusieurs pages si le
-    nombre de jours dépasse ce qui tient en largeur sur une page paysage
-    (largeur utile ~23,9 cm avec nos marges ; colonne ressource 2,6 cm +
-    26 colonnes de 0,7 cm = 20,8 cm, confortable)."""
+                        max_days_per_page: int = 16) -> list:
+    """Construit la/les table(s) de charge par ressource et par jour (1
+    ligne par ressource). Découpée en plusieurs pages si le nombre de
+    jours dépasse ce qui tient en largeur (vérifié empiriquement : la
+    largeur utile disponible à l'intérieur de \\begin{landscape} dans ce
+    document est d'environ 16,4 cm, pas la largeur de page physique)."""
     from gantt_engine import classify_charge
 
     days = calendar.working_days_between(date_debut_projet, date_fin_projet)
@@ -171,7 +176,7 @@ def build_charge_table(load: dict, calendar, date_debut_projet, date_fin_projet,
     tables = []
     for chunk in chunks:
         header_cells = " & ".join(r"\tblhead{%s}" % d.strftime("%d/%m") for d in chunk)
-        col_spec = "|p{2.6cm}|" + "p{0.7cm}|" * len(chunk)
+        col_spec = "|p{2.2cm}|" + "p{0.75cm}|" * len(chunk)
 
         rows = []
         for resource in load.keys():
