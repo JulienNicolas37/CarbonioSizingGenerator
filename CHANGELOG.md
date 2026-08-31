@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.2 — Vraie cause du chevauchement en-tête/tâches trouvée
+- **Cause racine isolée** (test minimal reproductible) : `\gantttitlelist` de `pgfgantt` ignore
+  purement et simplement le réglage `title height` dès que le libellé contient un `\rotatebox` — le
+  texte pivoté descend directement dans la zone des tâches quelle que soit la hauteur de titre
+  demandée, même très généreuse. Le texte NON pivoté, lui, reste parfaitement contenu.
+- **Correctif** : abandon de la rotation à 90° pour les repères hebdomadaires. Format compact
+  "JJ" seul pour chaque lundi, "JJ/MM" uniquement au changement de mois (pour garder un repère de
+  mois sans réintroduire de rotation) — `title height` ramené à sa valeur normale (1).
+- Confirmé par comparaison directe pivoté/non pivoté sur un cas isolé avant application au projet.
+
 ## 0.9.1 — Correctifs de mise en page du Gantt
 - **Cause racine identifiée empiriquement** : dans ce document, l'espace utile disponible à l'intérieur
   de `\begin{landscape}` fait environ 16,4 cm à la fois en largeur ET en hauteur (`\textwidth` et

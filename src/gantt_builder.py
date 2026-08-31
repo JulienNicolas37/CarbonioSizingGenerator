@@ -56,8 +56,16 @@ def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, ma
     x_unit_cm = min(0.5, max(0.1, AVAILABLE_CM / total_days))
 
     title_cells = []
+    last_month = None
     for d, idx in sorted(day_index.items(), key=lambda kv: kv[1]):
-        label = r"\rotatebox{90}{\tiny " + d.strftime("%d/%m") + "}" if d.weekday() == 0 else ""
+        if d.weekday() == 0:
+            if d.month != last_month:
+                label = r"\tiny " + d.strftime("%d/%m")
+                last_month = d.month
+            else:
+                label = r"\tiny " + d.strftime("%d")
+        else:
+            label = ""
         title_cells.append(f'"{label}"')
     title_row = r"\gantttitlelist{" + ",".join(title_cells) + "}{1}"
 
@@ -146,7 +154,7 @@ def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, ma
     milestone label font=\\bfseries\\scriptsize,
     bar height=0.45,
     group height=0.45,
-    title height=4,
+    title height=1,
     link/.style={{-{{Stealth[length=5pt]}}, thick, draw=gray}},
 }}
 \\begin{{ganttchart}}[hgrid, vgrid, x unit={x_unit_cm}cm, y unit chart=0.42cm]{{1}}{{{total_days}}}
