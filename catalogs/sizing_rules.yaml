@@ -190,9 +190,9 @@ storage_categories:
   # liste les champs de sizing (nodes[].sizing.*) qui la composent.
   categories:
     disque_rapide:
-      fields: [disk_os_gb, disk_appli_gb]
+      fields: [disk_os_gb, disk_appli_gb, disk_store_gb]
     disque_lent:
-      fields: [disk_store_gb]
+      fields: []
     stockage_objet:
       fields: [disk_secondaire_gb]
   # Le champ de backup est traité à part : sa catégorie dépend de
