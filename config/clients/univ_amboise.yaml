@@ -59,6 +59,24 @@ prestation:
   migration_included: true
   destination_platform: onpremise
   mco_contract: true
+gantt:
+  jours_travailles:
+    lundi: true
+    mardi: true
+    mercredi: true
+    jeudi: true
+    vendredi: true
+    samedi: false
+    dimanche: false
+  jours_feries_ics: catalogs/jours_feries_fr.ics
+  seuils_charge:
+    vert_max: 80
+    orange_max: 100
+  date_debut_estimee: 02/02/2026
+  date_fin_estimee: 13/03/2026
+  nombre_bascules: 3
+  date_premiere_bascule_souhaitee: null
+  bascules_overrides: []
 services:
   chat: true
   tache: true

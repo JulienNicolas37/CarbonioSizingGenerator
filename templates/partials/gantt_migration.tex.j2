@@ -1,0 +1,38 @@
+\chapter{Planning de migration}
+
+Le planning ci-dessous est établi à partir d'une date de début estimée
+au \VAR{ gantt.date_debut_estimee_display }, sur la base des jours
+travaillés et jours fériés définis pour ce projet.
+
+\BLOCK{ if gantt.warning }
+\begin{center}
+\fbox{\parbox{0.9\textwidth}{\textbf{\textcolor{placeholdercol}{Avertissement~:}} la durée calculée du planning
+(fin estimée au \VAR{ gantt.date_fin_calculee_display }) dépasse la date
+de fin estimée communiquée (\VAR{ gantt.date_fin_estimee_display }). Le
+calendrier ci-dessous reflète la durée réelle nécessaire compte tenu du
+nombre de bascules et des contraintes de calage~; un réajustement du
+planning global est à prévoir avec le client.}}
+\end{center}
+\BLOCK{ endif }
+
+\section{Planning prévisionnel}
+\BLOCK{ for page in gantt.diagram_pages }
+\begin{landscape}
+\VAR{ page }
+\end{landscape}
+\BLOCK{ if not loop.last }\clearpage\BLOCK{ endif }
+\BLOCK{ endfor }
+
+\clearpage
+\section{Charge par ressource}
+Le tableau ci-dessous indique, pour chaque jour travaillé du projet, le
+taux d'occupation cumulé de chaque ressource (somme des charges de
+toutes les tâches actives ce jour-là). Vert~: charge normale. Orange~:
+charge élevée. Rouge~: ressource en sur-occupation ce jour-là.
+
+\begin{landscape}
+\BLOCK{ for table in gantt.charge_tables }
+\VAR{ table }
+\BLOCK{ if not loop.last }\clearpage\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{landscape}

@@ -1,0 +1,20 @@
+# catalogs/gantt_config.yaml (config PROGRAMME, valeur par défaut)
+# Recopiée dans la config client à la génération (comme team_directory) —
+# modifiable ensuite par projet sans toucher au défaut du logiciel.
+
+jours_travailles:
+  lundi: true
+  mardi: true
+  mercredi: true
+  jeudi: true
+  vendredi: true
+  samedi: false
+  dimanche: false
+
+jours_feries_ics: "catalogs/jours_feries_fr.ics"
+
+# Seuils de couleur pour la page "Charge par ressource" (chapitre Gantt).
+seuils_charge:
+  vert_max: 80        # charge <= 80 % -> vert
+  orange_max: 100      # 80 % < charge <= 100 % -> orange
+                        # charge > 100 % -> rouge

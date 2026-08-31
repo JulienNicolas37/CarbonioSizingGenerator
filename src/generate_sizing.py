@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config_loader import load_catalogs, load_client_config, save_client_config, slugify, get_client, CLIENTS_DIR
+from config_loader import load_catalogs, load_client_config, save_client_config, slugify, get_client, load_yaml, CATALOGS_DIR, CLIENTS_DIR
 from sizing_engine import build_nodes, suggest_ha_tier, suggest_mailstore_count, needs_imap_question
 
 # Étiquette de fonction affichée dans le document pour chaque rôle projet
@@ -157,6 +157,26 @@ def run_interactive(catalogs: dict) -> dict:
         "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
     ).ask()
 
+    # --- Planning de migration (Gantt) — uniquement si migration incluse ---
+    nombre_bascules = None
+    date_premiere_bascule_souhaitee = None
+    date_debut_estimee = None
+    date_fin_estimee = None
+    if migration_included:
+        nombre_bascules = int(questionary.text(
+            "Combien de bascules (lots de migration) sont prévues ?", default="1"
+        ).ask())
+        date_premiere_bascule_souhaitee = questionary.text(
+            "Date souhaitée pour la première bascule (JJ/MM/AAAA, laisser vide pour un calcul automatique) :",
+            default=""
+        ).ask() or None
+        date_debut_estimee = questionary.text(
+            "Date de début estimée du projet (JJ/MM/AAAA) :"
+        ).ask()
+        date_fin_estimee = questionary.text(
+            "Date de fin estimée du projet (JJ/MM/AAAA) :"
+        ).ask()
+
     # --- Parties prenantes côté prestataire (Zextras) ---
     # On sélectionne dans l'annuaire (catalogs/team_directory.yaml) pour
     # éviter les fautes de frappe, mais l'enregistrement COMPLET (nom,
@@ -239,6 +259,19 @@ def run_interactive(catalogs: dict) -> dict:
             "migration_included": migration_included,
             "destination_platform": destination_platform,
             "mco_contract": mco_contract,
+        },
+        # Config Gantt : recopiée du défaut logiciel (catalogs/gantt_config.yaml)
+        # dans le fichier client, pour rester modifiable projet par projet
+        # sans toucher au défaut global (même principe que team_directory).
+        "gantt": {
+            "jours_travailles": dict(catalogs["gantt_config"]["jours_travailles"]),
+            "jours_feries_ics": catalogs["gantt_config"]["jours_feries_ics"],
+            "seuils_charge": dict(catalogs["gantt_config"]["seuils_charge"]),
+            "date_debut_estimee": date_debut_estimee,
+            "date_fin_estimee": date_fin_estimee,
+            "nombre_bascules": nombre_bascules,
+            "date_premiere_bascule_souhaitee": date_premiere_bascule_souhaitee,
+            "bascules_overrides": [],  # jamais en questionnaire, ajouté à la main
         },
         "infra": {
             "imap": imap,
@@ -332,6 +365,28 @@ def main():
 
     save_client_config(output_path, client_config)
     print(f"Config client écrite : {output_path}")
+
+    # Avertissement si le planning de migration calculé dépasse la date de
+    # fin estimée communiquée pour le projet.
+    prestation = client_config.get("prestation", {})
+    gantt_cfg = client_config.get("gantt", {})
+    if prestation.get("migration_included") and gantt_cfg.get("date_debut_estimee") and gantt_cfg.get("date_fin_estimee"):
+        from gantt_engine import WorkCalendar, compute_schedule, parse_ics_dates, parse_date_fr, format_date_fr
+        raw_tasks = load_yaml(CATALOGS_DIR / "migration_gantt.yaml")
+        holidays = parse_ics_dates(str(Path(gantt_cfg["jours_feries_ics"])))
+        cal = WorkCalendar(gantt_cfg["jours_travailles"], holidays)
+        date_debut = parse_date_fr(gantt_cfg["date_debut_estimee"])
+        date_fin_souhaitee = parse_date_fr(gantt_cfg["date_fin_estimee"])
+        date_premiere_bascule = parse_date_fr(gantt_cfg.get("date_premiere_bascule_souhaitee"))
+        sched = compute_schedule(
+            raw_tasks, cal, date_debut, gantt_cfg["nombre_bascules"],
+            date_premiere_bascule, gantt_cfg.get("bascules_overrides", []),
+        )
+        if date_debut and date_fin_souhaitee and sched["date_fin_projet"] > date_fin_souhaitee:
+            print(f"\n⚠ AVERTISSEMENT : le planning de migration calculé se termine le "
+                  f"{format_date_fr(sched['date_fin_projet'])}, après la date de fin estimée "
+                  f"communiquée ({format_date_fr(date_fin_souhaitee)}). Un réajustement du "
+                  f"calendrier global est à prévoir avec le client.")
 
     generate_pdf_script = Path(__file__).resolve().parent / "generate_pdf.py"
     try:

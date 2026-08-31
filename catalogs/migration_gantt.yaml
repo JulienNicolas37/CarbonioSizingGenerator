@@ -1,0 +1,38 @@
+# catalogs/migration_gantt.yaml
+# Planning type d'une migration Carbonio, fourni par Julien et corrigé
+# suite à échange (voir CHANGELOG) :
+#   - id 17/18 (Démarrage MCO / Accès support) : demarre_apres réécrit en
+#     "16#1" -> ne dépendent que de la 1ère bascule, jamais des suivantes.
+#   - id 19/20/21 (Fin de migration) : demarre_apres réécrit en "16#last"
+#     -> ne démarrent qu'après la DERNIÈRE bascule (tous les lots migrés).
+#   - id 1 (Kickoff) et 21 (Recette) : jalon=oui conservé, durée/charge
+#     ignorées au calcul (repli documenté avec Julien).
+#   - id 18 (Mise en place accès support) : durée manquante dans le
+#     fichier source -> valeur par défaut de 1 jour appliquée.
+#
+# groupe_repetition: "bascule" -> ce bloc de tâches (id 10 à 16) est
+# dupliqué autant de fois que la question "Combien de bascules ?" le
+# précise, avec des ids suffixés _lot1/_lot2/... Les références externes
+# vers ce groupe utilisent #1 (première occurrence) ou #last (dernière).
+
+- {id: "1", phase: "Lancement", tache: "Réunion de kickoff du projet", duree_jours: null, demarre_apres: null, jalon: true, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "2", phase: "Lancement", tache: "Fourniture des pré-requis de construction de la plateforme", duree_jours: 2, demarre_apres: "1", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "3", phase: "Lancement", tache: "Mise en place des pré-requis de plateforme (VM, Flux réseau, etc.)", duree_jours: 3, demarre_apres: "2", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 100, groupe_repetition: null}
+- {id: "4", phase: "Construction", tache: "Installation de la plateforme de messagerie Carbonio", duree_jours: 5, demarre_apres: "3", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 100, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "5", phase: "Construction", tache: "Validation du bon fonctionnement de la plateforme", duree_jours: 1, demarre_apres: "4", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: "CLIENT", charge_ressource_2_pct: 10, groupe_repetition: null}
+- {id: "6", phase: "Construction", tache: "Plateforme fonctionnelle", duree_jours: null, demarre_apres: "5", jalon: true, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "7", phase: "Initialisation", tache: "Vérification mise en place des flux spécifiques migration", duree_jours: 1, demarre_apres: "6", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "8", phase: "Initialisation", tache: "Fourniture du fichier de provisionning (Comptes, DL, Ressources)", duree_jours: 1, demarre_apres: "6", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 10, groupe_repetition: null}
+- {id: "9", phase: "Initialisation", tache: "Provisionning des adresses, alias, mdp et groupes", duree_jours: 1, demarre_apres: "8", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 40, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "10", phase: "Synchronisation pré-bascule", tache: "Synchronisation des données", duree_jours: 5, demarre_apres: "9", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 30, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: "bascule"}
+- {id: "11", phase: "Synchronisation pré-bascule", tache: "Vérification de la validité des données email", duree_jours: 1, demarre_apres: "10", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 100, groupe_repetition: "bascule"}
+- {id: "12", phase: "Bascule", tache: "Suppression transport à la destination", duree_jours: 1, demarre_apres: "11", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: "bascule"}
+- {id: "13", phase: "Bascule", tache: "Mise en place des forwards split-domaine des comptes du lot", duree_jours: 1, demarre_apres: "11", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 30, groupe_repetition: "bascule"}
+- {id: "14", phase: "Bascule", tache: "Synchronisation Delta", duree_jours: 1, demarre_apres: "11", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: "bascule"}
+- {id: "15", phase: "Bascule", tache: "Quotas de messagerie - Mise en place", duree_jours: 1, demarre_apres: "11", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: "bascule"}
+- {id: "16", phase: "Bascule", tache: "Contrôle des données", duree_jours: 1, demarre_apres: "11", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 30, groupe_repetition: "bascule"}
+- {id: "17", phase: "Post-bascule", tache: "Démarrage du MCO", duree_jours: null, demarre_apres: "16#1", jalon: true, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: null, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "18", phase: "Post-bascule", tache: "Mise en place accès support", duree_jours: 1, demarre_apres: "16#1", jalon: false, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: 10, ressource_2: null, charge_ressource_2_pct: null, groupe_repetition: null}
+- {id: "19", phase: "Fin de migration", tache: "Décommissionnement sur messagerie source", duree_jours: 1, demarre_apres: "16#last", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 100, groupe_repetition: null}
+- {id: "20", phase: "Fin de migration", tache: "Suppression des flux spécifiques migration", duree_jours: 1, demarre_apres: "16#last", jalon: false, condition: null, couleur: null, ressource_1: null, charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: 30, groupe_repetition: null}
+- {id: "21", phase: "Fin de migration", tache: "Recette", duree_jours: null, demarre_apres: "16#last", jalon: true, condition: null, couleur: null, ressource_1: "Zextras Services", charge_ressource_1_pct: null, ressource_2: "CLIENT", charge_ressource_2_pct: null, groupe_repetition: null}

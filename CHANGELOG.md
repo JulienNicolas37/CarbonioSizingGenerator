@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.9.0 — Planning de migration (Gantt)
+- **Nouveau chapitre "Planning de migration"** (tout dernier chapitre du document, affiché uniquement
+  si migration incluse ET les nouvelles questions de planning ont été renseignées) : diagramme
+  `pgfgantt` avec flèches de dépendance et repères hebdomadaires (dates des lundis), suivi d'une
+  page de charge par ressource et par jour.
+- **Nouveau catalogue `catalogs/migration_gantt.yaml`** : planning type de migration (21 tâches),
+  fourni par Julien et corrigé suite à échange (références `#1`/`#last` pour sortir du groupe
+  répétable, durée par défaut sur une tâche non renseignée, jalons Kickoff/Recette avec durée/charge
+  ignorées).
+- **Nouveaux catalogues `catalogs/gantt_config.yaml`** (jours travaillés par défaut, chemin du
+  calendrier de jours fériés, seuils de charge 80/100) et `catalogs/jours_feries_fr.ics` (exemple) —
+  recopiés dans la config client à la génération, modifiables ensuite par projet.
+- **Nouveau moteur `src/gantt_engine.py`** : calendrier de jours travaillés (jours fériés exclus),
+  expansion du groupe répétable de bascule en `nombre_bascules` occurrences (référencement `#1` =
+  première occurrence, `#last` = dernière), règle de calage des dates de bascule (1ère bascule = fin
+  des dépendances ou date souhaitée si postérieure, avancée au premier lundi/mardi/mercredi ; 2e
+  bascule = +14 jours ; suivantes = +7 jours ; surcharge manuelle par lot toujours prioritaire),
+  calcul de la charge cumulée par ressource et par jour.
+- **Nouveau constructeur `src/gantt_builder.py`** : génère le LaTeX `pgfgantt` (paginé automatiquement
+  par groupes complets si la hauteur dépasse une page paysage) et la table de charge (paginée par
+  blocs de jours si la largeur dépasse une page paysage) avec code couleur vert/orange/rouge.
+- **4 nouvelles questions** (uniquement si migration incluse) : nombre de bascules, date souhaitée
+  pour la première bascule (optionnelle), date de début estimée, date de fin estimée.
+- **Avertissement** affiché en fin de questionnaire ET dans le document si la durée calculée du
+  planning dépasse la date de fin estimée communiquée.
+- Couleur des tâches : par défaut selon la condition (Toujours/Migration/Build), surchargeable par
+  tâche via un code hexadécimal.
+- Correctif : signe "%" non échappé dans les cellules de la table de charge (même piège LaTeX que
+  précédemment rencontré) — corrigé.
+- Correctif : dimensionnement du Gantt et de la table de charge — la hauteur/largeur utile d'une
+  page en paysage correspond à l'ancienne largeur/hauteur de page (pas l'inverse), d'où la nécessité
+  d'une pagination automatique plutôt qu'un simple redimensionnement de police.
+
 ## 0.8.0 — Méthodologie de pilotage du projet
 - **Nouveau chapitre "Méthodologie de pilotage du projet"** (toujours en dernière position du
   document) : reprend le document fourni par Julien (Kick-off, suivi hebdomadaire, adaptation de la

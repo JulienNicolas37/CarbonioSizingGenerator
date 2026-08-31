@@ -27,6 +27,7 @@ def load_catalogs() -> dict:
         "sizing_rules": load_yaml(CATALOGS_DIR / "sizing_rules.yaml"),
         "team_directory": load_yaml(CATALOGS_DIR / "team_directory.yaml"),
         "qualification_catalog": load_yaml(CATALOGS_DIR / "qualification_catalog.yaml"),
+        "gantt_config": load_yaml(CATALOGS_DIR / "gantt_config.yaml"),
     }
 
 
