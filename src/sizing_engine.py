@@ -144,7 +144,13 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
         linéairement — voir hypothèse documentée dans sizing_rules.yaml),
         le reste de la volumétrie moyenne part en secondaire (S3) ;
       - sinon : tout reste en primaire (= volumétrie moyenne) ;
-      - si backups activés : 1,3x la taille cumulée primaire + secondaire.
+      - si backups activés : 1,3x la taille cumulée primaire + secondaire
+        (sur la base de l'usage réel, pas de la capacité avec marge) ;
+      - une MARGE de capacité (headroom_pct, 30 % par défaut) est ensuite
+        appliquée aux 3 supports (primaire, secondaire, backup) telle que
+        cette part de la capacité totale provisionnée reste disponible à
+        l'issue de la migration (capacité = usage / (1 - headroom_pct/100)),
+        arrondie à la centaine de Go la plus proche.
     """
     base = vm_catalog["mailbox"]
     rules = sizing_rules["mailstore_scaling"]["disque_par_mailstore"]
@@ -153,15 +159,33 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     avg_to_rounded = math.ceil(avg_to * 2) / 2  # arrondi au demi-To supérieur
     avg_gb = avg_to_rounded * 1000
 
-    secondary_gb = 0
+    secondary_gb_usage = 0
     if stockage_objet and hsm_active:
         retention = retention_days or rules["hsm_reference_retention_days"]
-        primary_gb = round(
+        primary_gb_usage = round(
             rules["hsm_primary_gb_reference"] * retention / rules["hsm_reference_retention_days"]
         )
-        secondary_gb = max(0, round(avg_gb - primary_gb))
+        secondary_gb_usage = max(0, round(avg_gb - primary_gb_usage))
     else:
-        primary_gb = round(avg_gb)
+        primary_gb_usage = round(avg_gb)
+
+    backup_gb_usage = (
+        round(rules["backup_multiplier"] * (primary_gb_usage + secondary_gb_usage))
+        if backups else 0
+    )
+
+    headroom_pct = rules.get("headroom_pct", 0)
+    factor = 1 - headroom_pct / 100
+
+    def with_headroom(usage_gb: int) -> int:
+        if not usage_gb:
+            return 0
+        capacity = usage_gb / factor if factor > 0 else usage_gb
+        return round(capacity / 100) * 100  # arrondi à la centaine de Go
+
+    primary_gb = with_headroom(primary_gb_usage)
+    secondary_gb = with_headroom(secondary_gb_usage)
+    backup_gb = with_headroom(backup_gb_usage)
 
     sizing = {
         "vcpu": base["vcpu"],
@@ -172,8 +196,8 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     }
     if secondary_gb:
         sizing["disk_secondaire_gb"] = secondary_gb
-    if backups:
-        sizing["disk_backup_gb"] = round(rules["backup_multiplier"] * (primary_gb + secondary_gb))
+    if backup_gb:
+        sizing["disk_backup_gb"] = backup_gb
 
     return sizing
 

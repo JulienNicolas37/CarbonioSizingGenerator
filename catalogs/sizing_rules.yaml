@@ -155,6 +155,17 @@ mailstore_scaling:
     # effectivement utilisés pour ce mailstore.
     backup_multiplier: 1.3
 
+    # --- Marge de capacité (mise en place d'une nouvelle plateforme) ---
+    # La volumétrie du client représente son USAGE réel, pas une capacité
+    # à provisionner telle quelle : sans marge, le stockage serait déjà
+    # saturé à l'issue de la migration (plus de place pour la croissance
+    # quotidienne). On applique donc une marge à chacun des 3 supports
+    # (primaire/block, secondaire/S3, backup) telle que headroom_pct % de
+    # la capacité TOTALE provisionnée reste disponible :
+    #   capacité = usage / (1 - headroom_pct/100)
+    # Résultat arrondi à la centaine de Go la plus proche.
+    headroom_pct: 30
+
 review_step:
   # Étape de fin de questionnaire (mode interactif uniquement) : récapitule
   # les valeurs calculées automatiquement avant de générer le YAML client.

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.11.0 — Marge de capacité sur le stockage mailstore
+- **Nouvelle règle `headroom_pct`** (30 % par défaut) dans `sizing_rules.yaml`
+  (`mailstore_scaling.disque_par_mailstore`) : la volumétrie communiquée par le client représente son
+  USAGE réel, pas une capacité à provisionner telle quelle. Sans marge, le stockage serait déjà
+  saturé à l'issue de la migration (plus de place pour la croissance quotidienne).
+- Appliquée aux **3 supports** (disque primaire/block, secondaire/S3, backup) telle que 30 % de la
+  capacité TOTALE provisionnée reste disponible : `capacité = usage / (1 - 0,30)`, arrondie à la
+  centaine de Go la plus proche.
+- Le multiplicateur de backup (1,3×) continue de s'appliquer sur l'usage réel (avant marge) — la
+  marge de capacité est ensuite appliquée au résultat, pas de double marge cumulée.
+- Vérifié sur l'exemple Amboise : 286/7714/10400 Go (usage brut) deviennent 400/11000/14900 Go
+  (capacité avec marge) par mailstore.
+
 ## 0.10.1 — Tableaux de charge par ressource regroupés
 - Les blocs de la table "Charge par ressource" s'empilent désormais sur la même page tant que la
   place le permet, au lieu d'un saut de page systématique entre chaque bloc de jours.

@@ -114,8 +114,8 @@ nodes:
     ram_gb: 16
     disk_os_gb: 30
     disk_appli_gb: 500
-    disk_store_gb: 1500
-    disk_backup_gb: 1950
+    disk_store_gb: 2100
+    disk_backup_gb: 2800
 - id: application01
   zone: LAN
   components:
