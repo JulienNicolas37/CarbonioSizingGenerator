@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.1 — Tableaux de charge par ressource regroupés
+- Les blocs de la table "Charge par ressource" s'empilent désormais sur la même page tant que la
+  place le permet, au lieu d'un saut de page systématique entre chaque bloc de jours.
+- Colonnes resserrées (0,52 cm au lieu de 0,75 cm) et police réduite (`\scriptsize`) pour tenir
+  20 jours par bloc au lieu de 16, réduisant d'autant le nombre de blocs nécessaires.
+- Sur l'exemple Amboise (38 jours travaillés) : 2 pages au lieu de 3 pour cette section.
+- Correctif en cours de route : un premier essai à 24 jours/bloc empiétait légèrement sur l'élément
+  décoratif de marge droite — ramené à 20 jours/bloc avec marge de sécurité.
+
 ## 0.10.0 — Document complet ou partiel
 - **Nouvelle question lors de la génération du document final** (`generate_pdf.py`, pas
   `generate_sizing.py`) : "Document complet ou partiel ?". En partiel, propose d'ajouter au socle de

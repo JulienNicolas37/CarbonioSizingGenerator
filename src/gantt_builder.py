@@ -168,12 +168,14 @@ def build_pgfgantt(tasks: dict, calendar, date_debut_projet, date_fin_projet, ma
 
 
 def build_charge_table(load: dict, calendar, date_debut_projet, date_fin_projet, seuils: dict,
-                        max_days_per_page: int = 16) -> list:
+                        max_days_per_page: int = 20) -> list:
     """Construit la/les table(s) de charge par ressource et par jour (1
-    ligne par ressource). Découpée en plusieurs pages si le nombre de
-    jours dépasse ce qui tient en largeur (vérifié empiriquement : la
-    largeur utile disponible à l'intérieur de \\begin{landscape} dans ce
-    document est d'environ 16,4 cm, pas la largeur de page physique)."""
+    ligne par ressource). Découpée en plusieurs blocs si le nombre de
+    jours dépasse ce qui tient en largeur (~16,4 cm utiles à l'intérieur
+    de \\begin{landscape} dans ce document, vérifié empiriquement) — les
+    blocs sont ensuite empilés verticalement sur la même page tant que la
+    place le permet (pas de saut de page systématique), pour limiter le
+    nombre total de pages."""
     from gantt_engine import classify_charge
 
     days = calendar.working_days_between(date_debut_projet, date_fin_projet)
@@ -184,7 +186,7 @@ def build_charge_table(load: dict, calendar, date_debut_projet, date_fin_projet,
     tables = []
     for chunk in chunks:
         header_cells = " & ".join(r"\tblhead{%s}" % d.strftime("%d/%m") for d in chunk)
-        col_spec = "|p{2.2cm}|" + "p{0.75cm}|" * len(chunk)
+        col_spec = "|p{1.8cm}|" + "p{0.52cm}|" * len(chunk)
 
         rows = []
         for resource in load.keys():
@@ -199,8 +201,8 @@ def build_charge_table(load: dict, calendar, date_debut_projet, date_fin_projet,
             rows.append(_escape(resource) + " & " + " & ".join(cells) + r" \\" + "\n\\hline")
 
         tables.append(f"""
-{{\\small
-\\renewcommand{{\\arraystretch}}{{1.3}}
+{{\\scriptsize
+\\renewcommand{{\\arraystretch}}{{1.15}}
 \\begin{{longtable}}{{{col_spec}}}
 \\hline
 \\rowcolor{{primary}}
