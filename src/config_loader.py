@@ -53,11 +53,22 @@ def get_client(client_config: dict) -> dict:
     return client_config.setdefault("parties_prenantes", {}).setdefault("client", {})
 
 
+class _NoAliasDumper(yaml.SafeDumper):
+    """Désactive systématiquement les ancres/alias YAML (&id001/*id001) —
+    ce sont des artefacts de sérialisation quand plusieurs nœuds
+    partagent le même objet Python en mémoire (ex. deux VM d'un même
+    groupe HA), pas une intention du fichier de config. Un fichier client
+    doit rester lisible tel quel, sans avoir à "dérouler" des références."""
+    def ignore_aliases(self, data):
+        return True
+
+
 def save_client_config(path_str: str, config: dict) -> None:
     p = resolve_client_path(path_str)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
-        yaml.dump(config, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+        yaml.dump(config, f, allow_unicode=True, sort_keys=False, default_flow_style=False,
+                   Dumper=_NoAliasDumper)
 
 
 def slugify(name: str) -> str:

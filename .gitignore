@@ -1,7 +1,9 @@
-# Configs clients réelles jamais suivies (seuls les 2 exemples le sont)
+# Configs clients réelles jamais suivies (seuls les 2 exemples + la
+# référence commentée le sont)
 config/clients/*.yaml
 !config/clients/client_exemple_petite.yaml
 !config/clients/univ_amboise.yaml
+!config/clients/client_exemple_reference.yaml
 config/clients/assets
 
 # Dossiers de génération (sorties/tex/pdf intermédiaires) jamais suivis

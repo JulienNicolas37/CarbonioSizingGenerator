@@ -236,7 +236,6 @@ def run_interactive(catalogs: dict) -> dict:
                 "description": None,
                 "site_web": None,
                 "adresse": [],
-                "telephone_urgence": None,
                 "contacts": [],
             },
             "prestataire": {

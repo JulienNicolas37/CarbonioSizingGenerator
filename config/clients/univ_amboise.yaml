@@ -21,7 +21,6 @@ parties_prenantes:
     adresse:
     - Place du Château
     - 37400 Amboise
-    telephone_urgence: +33 2 47 00 00 00
     contacts:
     - nom: Sophie Durand
       role: Responsable de projet
@@ -97,7 +96,7 @@ infra:
 nodes:
 - id: proxy01
   zone: DMZ
-  components: &id001
+  components:
   - proxy
   sizing:
     vcpu: 4
@@ -106,7 +105,8 @@ nodes:
     disk_appli_gb: 60
 - id: proxy02
   zone: DMZ
-  components: *id001
+  components:
+  - proxy
   sizing:
     vcpu: 4
     ram_gb: 8
@@ -114,7 +114,7 @@ nodes:
     disk_appli_gb: 60
 - id: mta_auth01
   zone: DMZ
-  components: &id002
+  components:
   - mta_auth
   sizing:
     vcpu: 4
@@ -123,7 +123,8 @@ nodes:
     disk_appli_gb: 90
 - id: mta_auth02
   zone: DMZ
-  components: *id002
+  components:
+  - mta_auth
   sizing:
     vcpu: 4
     ram_gb: 8
@@ -131,7 +132,7 @@ nodes:
     disk_appli_gb: 90
 - id: mta_in01
   zone: DMZ
-  components: &id003
+  components:
   - mta_in
   sizing:
     vcpu: 4
@@ -140,7 +141,8 @@ nodes:
     disk_appli_gb: 90
 - id: mta_in02
   zone: DMZ
-  components: *id003
+  components:
+  - mta_in
   sizing:
     vcpu: 4
     ram_gb: 8
@@ -148,7 +150,7 @@ nodes:
     disk_appli_gb: 90
 - id: mta_out01
   zone: DMZ
-  components: &id004
+  components:
   - mta_out
   sizing:
     vcpu: 4
@@ -157,7 +159,8 @@ nodes:
     disk_appli_gb: 90
 - id: mta_out02
   zone: DMZ
-  components: *id004
+  components:
+  - mta_out
   sizing:
     vcpu: 4
     ram_gb: 8
@@ -165,7 +168,7 @@ nodes:
     disk_appli_gb: 90
 - id: services01
   zone: LAN
-  components: &id005
+  components:
   - mesh
   - directory_master
   sizing:
@@ -175,7 +178,7 @@ nodes:
     disk_appli_gb: 160
 - id: services02
   zone: LAN
-  components: &id006
+  components:
   - mesh
   - directory_replica
   sizing:
@@ -185,7 +188,7 @@ nodes:
     disk_appli_gb: 160
 - id: services03
   zone: LAN
-  components: &id007
+  components:
   - mesh
   - database
   sizing:
@@ -305,7 +308,8 @@ infra_resolved:
 qualification_nodes:
 - id: qualif_proxy01
   zone: DMZ
-  components: *id001
+  components:
+  - proxy
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -313,7 +317,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_proxy02
   zone: DMZ
-  components: *id001
+  components:
+  - proxy
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -321,7 +326,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_auth01
   zone: DMZ
-  components: *id002
+  components:
+  - mta_auth
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -329,7 +335,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_auth02
   zone: DMZ
-  components: *id002
+  components:
+  - mta_auth
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -337,7 +344,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_in01
   zone: DMZ
-  components: *id003
+  components:
+  - mta_in
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -345,7 +353,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_in02
   zone: DMZ
-  components: *id003
+  components:
+  - mta_in
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -353,7 +362,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_out01
   zone: DMZ
-  components: *id004
+  components:
+  - mta_out
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -361,7 +371,8 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_mta_out02
   zone: DMZ
-  components: *id004
+  components:
+  - mta_out
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -369,7 +380,9 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_services01
   zone: LAN
-  components: *id005
+  components:
+  - mesh
+  - directory_master
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -377,7 +390,9 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_services02
   zone: LAN
-  components: *id006
+  components:
+  - mesh
+  - directory_replica
   sizing:
     vcpu: 2
     ram_gb: 4
@@ -385,7 +400,9 @@ qualification_nodes:
     disk_appli_gb: 20
 - id: qualif_services03
   zone: LAN
-  components: *id007
+  components:
+  - mesh
+  - database
   sizing:
     vcpu: 2
     ram_gb: 4

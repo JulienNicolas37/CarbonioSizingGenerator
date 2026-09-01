@@ -309,7 +309,6 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "description": value_or_placeholder(client_raw.get("description"), "Description du client à compléter"),
         "site_web": value_or_placeholder(client_raw.get("site_web"), "Site web à préciser"),
         "adresse": adresse_display or r"\placeholder{Adresse à préciser}",
-        "telephone_urgence": value_or_placeholder(client_raw.get("telephone_urgence"), "Téléphone d'urgence à préciser"),
         "contacts": contacts,
     }
 

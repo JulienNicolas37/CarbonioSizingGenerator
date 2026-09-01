@@ -1,0 +1,166 @@
+# config/clients/client_exemple_reference.yaml
+# ============================================================
+# FICHIER DE RÉFÉRENCE — toutes les options disponibles
+# ============================================================
+# Ce fichier n'est PAS destiné à être passé tel quel à generate_sizing.py
+# ou generate_pdf.py : c'est une référence commentée de CHAQUE option du
+# fichier de configuration client, pour s'y retrouver sans avoir à lire
+# le code. Il volontairement PAS les sections "nodes",
+# "qualification_nodes" ni "infra_resolved" : ces sections sont
+# calculées automatiquement par generate_sizing.py à partir de tout ce
+# qui suit, jamais éditées à la main.
+#
+# Pour un exemple réellement généré (avec nodes/qualification_nodes déjà
+# calculés) :
+#   - client_exemple_petite.yaml : cas simple (pas de migration, pas de
+#     stockage Objet, pas de qualification).
+#   - univ_amboise.yaml : cas complet (migration incluse, stockage Objet
+#     + HSM, backups sur S3, qualification en mode HA-mirror, contrat de
+#     MCO, planning Gantt).
+
+revisions:
+  # Historique des révisions du document — TOUJOURS en première clé du
+  # fichier (c'est la partie mise à jour le plus souvent). Une entrée par
+  # version publiée du document, la plus récente en dernier.
+  - version: "1.0"                # numéro affiché en page de garde et au chapitre "Historique des révisions"
+    date: "01/01/2026"             # format JJ/MM/AAAA
+    auteur: "Prénom Nom"           # nom en clair — PAS une référence à catalogs/team_directory.yaml
+    commentaire: "Première version"
+
+parties_prenantes:
+  client:
+    # --- Identité ---
+    name: "Nom du client"
+    classification: "Client"       # "Public" | "Client" | "Restreint" | "Confidentiel"
+                                     # -> coche la case correspondante au chapitre "Confidentialité"
+    logo: null                      # chemin RELATIF à ce fichier vers un logo (ex. "logo_client.png")
+                                     # null = pas de logo sur la page de garde
+
+    # --- Besoins exprimés (pilotent le dimensionnement) ---
+    domaines: 1                     # nombre de domaines de messagerie
+    comptes: 800                    # nombre de comptes — pilote le palier HA et le nombre de mailstores
+    volumetrie_to: 1.5              # volumétrie TOTALE ACTUELLE du client, en To (= son usage réel,
+                                     # pas la capacité à provisionner — voir headroom_pct dans
+                                     # sizing_rules.yaml qui ajoute la marge de croissance)
+    stockage_objet: false           # true = stockage Objet (S3) envisagé — voir infra.hsm_active
+
+    # --- Parties prenantes côté client (chapitre "Parties prenantes") —
+    # jamais demandées en interactif, à compléter manuellement ici.
+    # Repli "[à préciser]" affiché dans le document tant que c'est vide. ---
+    description: null               # texte de présentation du client (chapitre Parties prenantes)
+    site_web: null
+    adresse: []                     # liste de lignes, ex. ["12 rue Example", "75000 Paris"]
+    contacts: []                    # liste de contacts client affichés en tableau, ex. :
+      # - nom: "Prénom Nom"
+      #   role: "Fonction"
+      #   email: "prenom.nom@client.fr"
+      #   telephone: "+33 1 23 45 67 89"   # peut être une chaîne vide ""
+
+  prestataire:
+    # Informations recopiées EN CLAIR (nom/rôle/email/téléphone) depuis
+    # catalogs/team_directory.yaml au moment de la génération — jamais
+    # une référence par id, pour que ce fichier reste auto-suffisant.
+    # Affichées sur la page de garde (commercial + auteur) et dans la
+    # table des contacts Zextras du chapitre "Parties prenantes"
+    # (dédupliquée si une même personne cumule plusieurs rôles).
+    commercial:
+      nom: "Prénom Nom"
+      role: "Titre du poste"
+      email: "prenom.nom@zextras.fr"
+      telephone: "+33 6 00 00 00 00"
+    auteur:
+      nom: "Prénom Nom"
+      role: "Titre du poste"
+      email: "prenom.nom@zextras.fr"
+      telephone: "+33 6 00 00 00 00"
+    chef_projet:
+      nom: "Prénom Nom"
+      role: "Titre du poste"
+      email: "prenom.nom@zextras.fr"
+      telephone: "+33 6 00 00 00 00"
+
+prestation:
+  # Ce qui a été VENDU / commandé — distinct des décisions techniques
+  # d'infra ci-dessous (des questions de nature différente : l'un décrit
+  # le contrat, l'autre les choix d'architecture qui en découlent).
+  migration_included: false          # true -> ajoute le chapitre "Méthodologie de migration"
+                                       # (et le planning Gantt si la section "gantt" est renseignée)
+  destination_platform: "onpremise"   # "onpremise" | "carboniocloud" | "saasdedie"
+                                       # pilote le contenu conditionnel du chapitre migration
+                                       # (balises <onpremise>/<carboniocloud>/<saasdedie> du texte source)
+  mco_contract: false                  # contrat de MCO à la suite de la migration — peut à lui seul
+                                        # déclencher le chapitre "Méthodologie de pilotage du projet"
+                                        # (avec migration_included et destination_platform != onpremise)
+
+# Section "gantt" : présente uniquement si migration_included=true au
+# moment de la génération. Son contenu par défaut vient de
+# catalogs/gantt_config.yaml, recopié ici à la création du fichier puis
+# modifiable projet par projet sans toucher au défaut du logiciel.
+gantt:
+  jours_travailles:                   # jours de la semaine effectivement travaillés
+    lundi: true
+    mardi: true
+    mercredi: true
+    jeudi: true
+    vendredi: true
+    samedi: false
+    dimanche: false
+  jours_feries_ics: "catalogs/jours_feries_fr.ics"  # calendrier ICS des jours fériés à exclure du calcul
+  seuils_charge:                       # seuils de couleur de la page "Charge par ressource"
+    vert_max: 80                       # charge <= 80 % -> vert
+    orange_max: 100                    # 80 % < charge <= 100 % -> orange ; > 100 % -> rouge
+  date_debut_estimee: "01/01/2026"     # JJ/MM/AAAA — point de départ du calcul des dates du planning
+  date_fin_estimee: "30/06/2026"       # JJ/MM/AAAA — sert à détecter un dépassement (avertissement
+                                        # affiché en fin de questionnaire ET dans le document)
+  nombre_bascules: 1                    # nombre de lots de migration — répète le groupe de tâches
+                                         # "bascule" du planning autant de fois
+  date_premiere_bascule_souhaitee: null # JJ/MM/AAAA optionnel — sinon calculée automatiquement
+                                         # (fin des dépendances, avancée au 1er lundi/mardi/mercredi
+                                         # qui suit ; une date trop tôt par rapport aux dépendances
+                                         # est ignorée au profit du calcul automatique)
+  bascules_overrides: []                # jamais posé en questionnaire — surcharge manuelle d'une
+                                         # date de bascule précise, à ajouter à la main si besoin :
+    # - lot: 2
+    #   date: "14/04/2026"
+
+services:
+  # Toujours inclus par défaut sans question : messagerie, agenda, contacts.
+  chat: false
+  tache: false
+  files: false
+  edition_collaborative: false
+  visio: false
+
+infra:
+  # --- Décisions techniques dérivées de règles (catalogs/sizing_rules.yaml) ---
+  imap: true                     # accès IMAP direct proposé aux utilisateurs — ne pilote le palier
+                                   # HA qu'au-delà de 20000 comptes (sinon sans effet)
+  migration_factory: false       # présence d'une usine de migration côté client (nœud temporaire,
+                                   # signalé comme tel dans le document, à retirer après migration)
+  ha_tier: "auto"                 # "auto" (recalcule la suggestion à chaque relecture) | 0 | 1 | 2 | 3
+                                   # (force ce palier explicitement, ignore la suggestion)
+  mailstore_count: "auto"         # "auto" | entier explicite
+
+  # --- Stockage Objet / HSM (pertinent seulement si
+  # parties_prenantes.client.stockage_objet=true) ---
+  hsm_active: false                # module HSM réellement activé -> les données sont effectivement
+                                    # déportées vers le stockage secondaire (S3)
+  retention_days: null             # jours de rétention sur le stockage primaire si hsm_active=true
+                                    # (si vide, la règle par défaut de sizing_rules.yaml s'applique —
+                                    # 7 jours de référence)
+
+  # --- Backups ---
+  backups: false                   # sauvegardes mises en place pour ce projet
+  backup_sur_s3: false             # backup stocké sur S3 plutôt qu'en stockage block (n'a d'effet
+                                    # que si backups=true)
+
+  # --- Qualification ---
+  qualification_active: false      # infrastructure de qualification prévue pour ce projet
+  qualification_ha_mirror: false   # true = reproduit la structure HA de la production à taille
+                                    # réduite ; sans effet (retombe en mode minimal, 3 VM) si la
+                                    # production n'a pas de palier HA actif
+
+# "nodes", "qualification_nodes" et "infra_resolved" sont calculés par
+# generate_sizing.py à partir de tout ce qui précède : jamais éditées à
+# la main. Voir client_exemple_petite.yaml ou univ_amboise.yaml pour un
+# exemple avec ces sections déjà présentes.

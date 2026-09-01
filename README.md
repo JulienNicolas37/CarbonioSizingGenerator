@@ -80,6 +80,23 @@ Sortie dans `build/<nom_client_slugifié>/` : le PDF final à la racine
 intermédiaires (.tex, logos, résidus LaTeX) dans `generation/` (jamais
 suivi par git, même pour les exemples).
 
+### Compiler un PDF à partir d'un .tex existant (sans repasser par generate_pdf.py)
+
+Utile après une modification manuelle du `.tex`, ou si `--compile` a été
+omis lors de la génération :
+
+```bash
+cd build/<nom_client_slugifié>/generation
+latexmk -xelatex -interaction=nonstopmode Prerequis_<nom_client_slugifié>.tex
+# Le PDF est généré dans ce même dossier generation/ ; copier-coller à
+# la racine du dossier client si besoin (c'est ce que fait --compile).
+
+# Sans latexmk (2 passes nécessaires pour que le sommaire et les
+# renvois de page soient à jour) :
+xelatex -interaction=nonstopmode Prerequis_<nom_client_slugifié>.tex
+xelatex -interaction=nonstopmode Prerequis_<nom_client_slugifié>.tex
+```
+
 ## Structure
 
 ```
@@ -137,13 +154,26 @@ src/
   palier HA 3, 5 mailstores, tous les services, usine de migration
   (20 nœuds).
 
+## Fichier de référence de toutes les options (`client_exemple_reference.yaml`)
+
+`config/clients/client_exemple_reference.yaml` documente, avec un
+commentaire par champ, l'intégralité des options disponibles dans un
+fichier de configuration client (identité, besoins exprimés, contacts,
+prestation, planning Gantt, services, infra). Ce n'est **pas** un
+fichier à passer tel quel à `generate_sizing.py`/`generate_pdf.py` (il
+n'a pas de section `nodes`, calculée automatiquement) — c'est une
+référence à consulter pour retrouver une option sans lire le code.
+
 ## Annuaire des intervenants (`catalogs/team_directory.yaml`)
 
-Le commercial en charge et l'auteur du document sont référencés par id
-numérique depuis la config client (`infra.commercial_id`,
-`infra.auteur_id`, et `revisions[].auteur_id`) — jamais retapés à la
-main. Ajouter un intervenant = ajouter une entrée numérotée dans ce
-fichier.
+Sert de source lors de la sélection interactive du commercial, de
+l'auteur et du chef de projet dans `generate_sizing.py` : l'entrée
+choisie (nom/rôle/email/téléphone) est alors recopiée **en clair** dans
+`parties_prenantes.prestataire` de la config client — jamais une simple
+référence par id, pour que le fichier client reste auto-suffisant et
+lisible sans avoir à croiser cet annuaire. Ajouter un intervenant =
+ajouter une entrée numérotée dans ce fichier ; ça ne modifie aucune
+config client déjà générée.
 
 ## Principes repris du Générateur de DAT (cohérence entre projets)
 

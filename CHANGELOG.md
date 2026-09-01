@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 — Nettoyage, doc et fichier de référence
+- **Suppression du "téléphone d'urgence"** (chapitre Parties prenantes, section client) : hérité du
+  Générateur de DAT, sans intérêt en avant-vente — retiré du template, de `generate_pdf.py`, de
+  `generate_sizing.py` et des 2 exemples.
+- **Ancres/alias YAML (`&id001`/`*id001`) éliminés** : ces artefacts apparaissaient quand plusieurs
+  nœuds partageaient le même objet liste Python en mémoire (ex. les 2 VM d'un groupe HA, ou les nœuds
+  de qualification en mode HA-mirror réutilisant directement les listes de `sizing_rules.yaml`) — pas
+  une intention du fichier, juste un effet de bord de la sérialisation. Corrigé à la source
+  (`sizing_engine.py` copie désormais chaque liste `components` par nœud) et en filet de sécurité
+  côté sérialisation (`config_loader.py` désactive maintenant systématiquement les alias YAML).
+- **README** : nouvelle section expliquant comment compiler un `.tex` en PDF sans repasser par
+  `generate_pdf.py` (`latexmk` ou `xelatex` en 2 passes), et correction d'une documentation obsolète
+  sur l'annuaire des intervenants (mentionnait encore `infra.commercial_id`/`infra.auteur_id`, un
+  système de référence par id abandonné depuis la v0.4.0 au profit des infos recopiées en clair).
+- **Nouveau fichier de référence `config/clients/client_exemple_reference.yaml`** : documente, avec
+  un commentaire par champ, l'intégralité des options disponibles dans une config client — à
+  consulter, pas à générer tel quel (pas de section `nodes`). Suivi par git comme les 2 autres
+  exemples ; référencé dans le README.
+
 ## 0.11.0 — Marge de capacité sur le stockage mailstore
 - **Nouvelle règle `headroom_pct`** (30 % par défaut) dans `sizing_rules.yaml`
   (`mailstore_scaling.disque_par_mailstore`) : la volumétrie communiquée par le client représente son

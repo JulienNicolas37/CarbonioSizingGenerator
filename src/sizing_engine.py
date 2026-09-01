@@ -250,12 +250,12 @@ def build_qualification_nodes(qual_catalog: dict, sizing_rules: dict,
                 idx = counters[base_id]
                 node_id = f"{base_id}{idx:02d}" if group["count"] > 1 else base_id
                 nodes.append({
-                    "id": node_id, "zone": group["zone"], "components": group["components"],
+                    "id": node_id, "zone": group["zone"], "components": list(group["components"]),
                     "sizing": qual_sizing(qual_catalog[group["components"][0]]),
                 })
         for node_id, components in SERVICES_PATTERN:
             nodes.append({
-                "id": f"qualif_{node_id}", "zone": "LAN", "components": components,
+                "id": f"qualif_{node_id}", "zone": "LAN", "components": list(components),
                 "sizing": qual_sizing(qual_catalog[components[-1]]),
             })
     else:
@@ -314,7 +314,7 @@ def build_nodes(client_config: dict, catalogs: dict,
             nodes.append({
                 "id": node_id,
                 "zone": zone,
-                "components": components,
+                "components": list(components),  # copie : évite un objet liste partagé entre nœuds
                 "sizing": _sizing_from_catalog(vm_catalog, components[0]),
             })
 
@@ -331,7 +331,7 @@ def build_nodes(client_config: dict, catalogs: dict,
         nodes.append({
             "id": node_id,
             "zone": "LAN",
-            "components": components,
+            "components": list(components),
             "sizing": _sizing_from_catalog(vm_catalog, components[-1]),
         })
 

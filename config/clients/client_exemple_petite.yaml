@@ -15,7 +15,6 @@ parties_prenantes:
     description: null
     site_web: null
     adresse: []
-    telephone_urgence: null
     contacts: []
   prestataire:
     commercial:
@@ -57,7 +56,7 @@ infra:
 nodes:
 - id: proxy_mta01
   zone: DMZ
-  components: &id001
+  components:
   - proxy
   - mta_in
   - mta_auth
@@ -69,7 +68,11 @@ nodes:
     disk_appli_gb: 60
 - id: proxy_mta02
   zone: DMZ
-  components: *id001
+  components:
+  - proxy
+  - mta_in
+  - mta_auth
+  - mta_out
   sizing:
     vcpu: 4
     ram_gb: 8
