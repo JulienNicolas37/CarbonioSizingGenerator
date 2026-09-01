@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10.0 — Document complet ou partiel
+- **Nouvelle question lors de la génération du document final** (`generate_pdf.py`, pas
+  `generate_sizing.py`) : "Document complet ou partiel ?". En partiel, propose d'ajouter au socle de
+  base (Introduction, Parties prenantes, Solution Carbonio, Prérequis avec tableau de
+  dimensionnement, Infrastructure de qualification avec tableau, Bilan des besoins) une sélection
+  parmi 4 extras : les schémas d'architecture (production + qualification), la méthodologie de
+  migration, la méthodologie projet, le planning de migration.
+- Ce choix n'est **jamais écrit dans le fichier de config client** : c'est une décision propre à
+  chaque génération, pas une propriété durable du projet — permet de produire un document complet
+  pour usage interne et une version allégée pour le client à partir de la même config.
+- **Nouveau flag `--non-interactive`** sur `generate_pdf.py` (miroir de celui de `generate_sizing.py`) :
+  saute la question et génère le document complet, pour les usages scriptés/automatisés.
+- Testé sur les 3 cas extrêmes : aucun extra (11 pages, socle nu), tous les extras (33 pages,
+  identique au comportement précédent), et une sélection partielle (planning de migration seul).
+
 ## 0.9.2 — Vraie cause du chevauchement en-tête/tâches trouvée
 - **Cause racine isolée** (test minimal reproductible) : `\gantttitlelist` de `pgfgantt` ignore
   purement et simplement le réglage `title height` dès que le libellé contient un `\rotatebox` — le

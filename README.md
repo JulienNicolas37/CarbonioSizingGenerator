@@ -68,6 +68,11 @@ python3 src/generate_sizing.py --client config/clients/univ_amboise.yaml
 
 # 2. Génération du document de prérequis techniques (LaTeX + PDF)
 python3 src/generate_pdf.py --client config/clients/univ_amboise.yaml --compile
+# Demande "document complet ou partiel ?" — en partiel, propose d'ajouter
+# les schémas d'architecture, la méthodologie de migration, la
+# méthodologie projet et/ou le planning de migration au socle de base.
+# --non-interactive : saute la question, génère le document complet
+# (choix jamais écrit dans la config client : propre à chaque génération).
 ```
 
 Sortie dans `build/<nom_client_slugifié>/` : le PDF final à la racine

@@ -151,7 +151,7 @@ def categorize_storage(totals: dict, backup_sur_s3: bool, storage_rules: dict) -
     return result
 
 
-def build_context(client_config: dict, catalogs: dict) -> dict:
+def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> dict:
     component_labels = catalogs["component_labels"]
 
     client_raw = get_client(client_config)
@@ -403,6 +403,7 @@ def build_context(client_config: dict, catalogs: dict) -> dict:
         "migration_raci": migration_raci,
         "pilotage_active": pilotage_active,
         "gantt": gantt_ctx,
+        "document_scope": document_scope,
     }
 
 
@@ -417,15 +418,16 @@ def render_document(ctx: dict) -> str:
     zextras_contacts = env.get_template("zextras_contacts.tex.j2").render(**ctx)
     carbonio_solution = (TEMPLATES_DIR / "carbonio_solution.tex").read_text(encoding="utf-8")  # statique
     prerequis = env.get_template("prerequis.tex.j2").render(**ctx)
-    architecture = env.get_template("architecture.tex.j2").render(**ctx)
+    architecture = (env.get_template("architecture.tex.j2").render(**ctx)
+                    if ctx["document_scope"]["schemas_architecture"] else "")
     qualification = (env.get_template("qualification.tex.j2").render(**ctx)
                       if ctx["qualification"]["active"] else "")
     migration_methodology = (env.get_template("migration_methodology.tex.j2").render(**ctx)
-                              if ctx["migration"]["included"] else "")
+                              if ctx["migration"]["included"] and ctx["document_scope"]["methodologie_migration"] else "")
     methodologie_pilotage = (env.get_template("methodologie_pilotage.tex.j2").render(**ctx)
-                              if ctx["pilotage_active"] else "")
+                              if ctx["pilotage_active"] and ctx["document_scope"]["methodologie_projet"] else "")
     gantt_migration = (env.get_template("gantt_migration.tex.j2").render(**ctx)
-                        if ctx["gantt"]["active"] else "")
+                        if ctx["gantt"]["active"] and ctx["document_scope"]["planning_migration"] else "")
     bilan_ressources = env.get_template("bilan_ressources.tex.j2").render(**ctx)
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
@@ -461,10 +463,44 @@ def render_document(ctx: dict) -> str:
     )
 
 
+DOCUMENT_SCOPE_EXTRAS = [
+    ("schemas_architecture", "Les schémas d'architecture"),
+    ("methodologie_migration", "La méthodologie de migration"),
+    ("methodologie_projet", "La méthodologie projet"),
+    ("planning_migration", "Le planning de migration"),
+]
+
+
+def ask_document_scope(non_interactive: bool) -> dict:
+    """Document complet (tout ce qui s'applique au projet) ou partiel
+    (uniquement le socle de base, plus les sections cochées parmi les 4
+    extras). Ce choix n'est jamais écrit dans la config client : c'est
+    une décision propre à CETTE génération, pas une propriété durable du
+    projet — le même fichier peut ainsi servir à produire un document
+    complet pour usage interne ET une version partielle pour le client."""
+    if non_interactive:
+        return {key: True for key, _ in DOCUMENT_SCOPE_EXTRAS}
+
+    import questionary
+    scope_choice = questionary.select(
+        "Document complet ou partiel ?", choices=["Complet", "Partiel"]
+    ).ask()
+    if scope_choice == "Complet":
+        return {key: True for key, _ in DOCUMENT_SCOPE_EXTRAS}
+
+    selected = questionary.checkbox(
+        "Au-delà du socle de base, quelles sections ajouter ?",
+        choices=[questionary.Choice(title=label, value=key) for key, label in DOCUMENT_SCOPE_EXTRAS],
+    ).ask() or []
+    return {key: (key in selected) for key, _ in DOCUMENT_SCOPE_EXTRAS}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Génère le document de prérequis techniques (LaTeX/PDF)")
     parser.add_argument("--client", required=True, help="Chemin vers la config client (déjà dimensionnée)")
     parser.add_argument("--compile", action="store_true", help="Compile le PDF via latexmk (sinon : .tex seul)")
+    parser.add_argument("--non-interactive", action="store_true",
+                         help="Ne pose pas la question document complet/partiel : génère le document complet")
     args = parser.parse_args()
 
     client_config = load_client_config(args.client)
@@ -482,7 +518,9 @@ def main():
         print("Lancez d'abord generate_sizing.py --client ... pour calculer le dimensionnement.")
         sys.exit(1)
 
-    ctx = build_context(client_config, catalogs)
+    document_scope = ask_document_scope(args.non_interactive)
+
+    ctx = build_context(client_config, catalogs, document_scope)
 
     client_name = get_client(client_config).get("name", "client")
     client_dir = BUILD_DIR / slugify(client_name)
