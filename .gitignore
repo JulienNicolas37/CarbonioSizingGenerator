@@ -2,6 +2,7 @@
 config/clients/*.yaml
 !config/clients/client_exemple_petite.yaml
 !config/clients/univ_amboise.yaml
+config/clients/assets
 
 # Dossiers de génération (sorties/tex/pdf intermédiaires) jamais suivis
 build/*/generation/

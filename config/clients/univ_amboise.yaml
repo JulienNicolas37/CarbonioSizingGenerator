@@ -7,7 +7,7 @@ parties_prenantes:
   client:
     name: Université d'Amboise
     classification: Client
-    logo: assets/univ_amboise_logo.png
+    logo: univ_amboise_logo.png
     domaines: 15
     comptes: 25000
     volumetrie_to: 40
