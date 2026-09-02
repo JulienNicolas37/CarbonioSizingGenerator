@@ -303,7 +303,7 @@ infra_resolved:
   ha_tier_reason: 25000 comptes, IMAP direct activé
   mailstore_count: 5
   mailstore_count_suggestion: 5
-  mailstore_reason: '25000 comptes (stockage Objet + HSM actifs : volumétrie non dimensionnante)'
+  mailstore_reason: '25000 comptes (HSM actif : volumétrie non dimensionnante)'
   qualification_mode: ha_mirror
 qualification_nodes:
 - id: qualif_proxy01

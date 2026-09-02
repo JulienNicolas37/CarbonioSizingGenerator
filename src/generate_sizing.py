@@ -88,16 +88,20 @@ def run_interactive(catalogs: dict) -> dict:
     volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
     stockage_objet = questionary.confirm("Stockage Objet activé ?", default=False).ask()
 
-    hsm_active = False
+    # Le module HSM (délestage des données froides vers un stockage
+    # secondaire) est toujours posé juste après la question du S3, même
+    # sans Stockage Objet : le délestage peut cibler du S3 (si Stockage
+    # Objet actif) ou simplement un disque lent local (sinon). La
+    # suggestion de départ reprend la réponse donnée au S3, sans l'imposer.
+    hsm_active = questionary.confirm(
+        "Activer le module HSM (délestage des données froides vers un stockage secondaire) ?",
+        default=stockage_objet
+    ).ask()
     retention_days = None
-    if stockage_objet:
-        hsm_active = questionary.confirm(
-            "Activer le module HSM (stockage secondaire S3) ?", default=True
-        ).ask()
-        if hsm_active:
-            retention_days = int(questionary.text(
-                "Rétention en jours à prévoir sur le stockage primaire :", default="7"
-            ).ask())
+    if hsm_active:
+        retention_days = int(questionary.text(
+            "Rétention en jours à prévoir sur le stockage primaire :", default="7"
+        ).ask())
 
     backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
     backup_sur_s3 = False
@@ -310,7 +314,7 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
 
     mailstore_suggestion = suggest_mailstore_count(
         client["comptes"], client.get("volumetrie_to", 0),
-        client.get("stockage_objet", False), infra.get("hsm_active", False),
+        infra.get("hsm_active", False),
         catalogs["sizing_rules"],
     )
     mailstore_count_override = interactive_mailstore_choice(

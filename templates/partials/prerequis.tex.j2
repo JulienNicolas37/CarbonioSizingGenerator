@@ -19,7 +19,7 @@ communiqués par le client~:
   \item Volumétrie totale de données~: \VAR{ besoins.volumetrie_to } To
   \item Stockage Objet~: \VAR{ besoins.stockage_objet }
 \BLOCK{ if besoins.hsm_active }
-  \item Module HSM (stockage secondaire S3)~: activé, rétention primaire de \VAR{ besoins.retention_days } jour(s)
+  \item Module HSM (délestage vers un stockage secondaire \VAR{ besoins.secondaire_label })~: activé, rétention primaire de \VAR{ besoins.retention_days } jour(s)
 \BLOCK{ endif }
   \item Backups~: \VAR{ "Oui" if besoins.backups else "Non" }\BLOCK{ if besoins.backups and besoins.backup_sur_s3 } (sur S3)\BLOCK{ endif }
 
@@ -47,7 +47,7 @@ déploiement, réparties entre la zone publique (DMZ) et la zone privée
 \begin{longtable}{|p{2.6cm}|p{1cm}|p{3.4cm}|p{0.9cm}|p{1.3cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{2cm}|p{2cm}|}
 \hline
 \rowcolor{primary}
-\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM (Go)} & \tblhead{OS (Go)} & \tblhead{Appli (Go)} & \tblhead{Store (Go)} & \tblhead{Secondaire (S3, Go)} & \tblhead{Backup (\BLOCK{ if besoins.backup_sur_s3 }S3, \BLOCK{ endif }Go)} \\
+\tblhead{Nœud} & \tblhead{Zone} & \tblhead{Composants} & \tblhead{vCPU} & \tblhead{RAM (Go)} & \tblhead{OS (Go)} & \tblhead{Appli (Go)} & \tblhead{Store (Go)} & \tblhead{Secondaire (\VAR{ besoins.secondaire_label }, Go)} & \tblhead{Backup (\BLOCK{ if besoins.backup_sur_s3 }S3, \BLOCK{ endif }Go)} \\
 \hline
 \endhead
 \BLOCK{ for n in nodes }

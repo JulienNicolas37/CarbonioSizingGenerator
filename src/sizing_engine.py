@@ -71,17 +71,20 @@ def suggest_ha_tier(comptes: int, imap: bool, sizing_rules: dict) -> HaSuggestio
     return HaSuggestion(level=chosen["level"], groups=chosen["groups"], reason=reason)
 
 
-def suggest_mailstore_count(comptes: int, volumetrie_to: float, stockage_objet: bool,
+def suggest_mailstore_count(comptes: int, volumetrie_to: float,
                              hsm_active: bool, sizing_rules: dict) -> MailstoreSuggestion:
     rules = sizing_rules["mailstore_scaling"]
     by_accounts = math.ceil(comptes / rules["max_accounts_per_mailstore"]) if comptes > 0 else 1
 
     # La volumétrie n'est ignorée pour le NOMBRE de mailstores que si les
-    # données sont effectivement déportées (Stockage Objet ET module HSM
-    # actif) — sans HSM, tout reste sur le stockage primaire.
-    if stockage_objet and hsm_active and rules.get("object_storage_ignores_volumetry", False):
+    # données sont effectivement déportées hors du stockage primaire —
+    # c'est le rôle du module HSM, que le délestage se fasse vers du S3
+    # ou vers un simple disque lent local (le HSM ne dépend plus du
+    # Stockage Objet pour fonctionner). Sans HSM, tout reste sur le
+    # stockage primaire, la volumétrie redevient dimensionnante.
+    if hsm_active and rules.get("object_storage_ignores_volumetry", False):
         count = max(1, by_accounts)
-        reason = f"{comptes} comptes (stockage Objet + HSM actifs : volumétrie non dimensionnante)"
+        reason = f"{comptes} comptes (HSM actif : volumétrie non dimensionnante)"
     else:
         by_volume = (math.ceil(volumetrie_to / rules["max_block_data_to_per_mailstore"])
                      if volumetrie_to > 0 else 1)
@@ -131,7 +134,7 @@ def _sizing_from_catalog(vm_catalog: dict, component_id: str) -> dict:
 
 
 def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_count: int,
-                              volumetrie_to: float, stockage_objet: bool, hsm_active: bool,
+                              volumetrie_to: float, hsm_active: bool,
                               retention_days: Optional[int], backups: bool) -> dict:
     """
     Dimensionnement disque d'un mailstore (identique pour tous les
@@ -139,10 +142,14 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     différenciée) :
       - volumétrie moyenne par mailstore = volumétrie totale / nombre de
         mailstores, arrondie au demi-To supérieur ;
-      - si Stockage Objet + HSM actifs : stockage primaire dimensionné
-        pour la rétention demandée (200 Go pour 7 jours, mis à l'échelle
-        linéairement — voir hypothèse documentée dans sizing_rules.yaml),
-        le reste de la volumétrie moyenne part en secondaire (S3) ;
+      - si HSM actif (avec OU sans Stockage Objet — le délestage des
+        données froides peut cibler du S3 ou simplement un disque lent
+        local, le module HSM ne dépend pas du Stockage Objet pour
+        fonctionner) : stockage primaire dimensionné pour la rétention
+        demandée (200 Go pour 7 jours, mis à l'échelle linéairement —
+        voir hypothèse documentée dans sizing_rules.yaml), le reste de
+        la volumétrie moyenne part en secondaire (S3 ou lent selon le
+        Stockage Objet — décidé à l'affichage, pas ici) ;
       - sinon : tout reste en primaire (= volumétrie moyenne) ;
       - si backups activés : 1,3x la taille cumulée primaire + secondaire
         (sur la base de l'usage réel, pas de la capacité avec marge) ;
@@ -160,7 +167,7 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     avg_gb = avg_to_rounded * 1000
 
     secondary_gb_usage = 0
-    if stockage_objet and hsm_active:
+    if hsm_active:
         retention = retention_days or rules["hsm_reference_retention_days"]
         primary_gb_usage = round(
             rules["hsm_primary_gb_reference"] * retention / rules["hsm_reference_retention_days"]
@@ -336,12 +343,12 @@ def build_nodes(client_config: dict, catalogs: dict,
         })
 
     # --- Mailstores ---
-    mailstore_suggestion = suggest_mailstore_count(comptes, volumetrie_to, stockage_objet, hsm_active, sizing_rules)
+    mailstore_suggestion = suggest_mailstore_count(comptes, volumetrie_to, hsm_active, sizing_rules)
     mailstore_count = (mailstore_count_override if mailstore_count_override is not None
                        else mailstore_suggestion.count)
     mailstore_sizing = compute_mailstore_sizing(
         vm_catalog, sizing_rules, mailstore_count, volumetrie_to,
-        stockage_objet, hsm_active, retention_days, backups,
+        hsm_active, retention_days, backups,
     )
     for i in range(mailstore_count):
         nodes.append({

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.13.0 — HSM découplé du Stockage Objet
+- **Le module HSM peut désormais être activé sans Stockage Objet** : le délestage des données
+  froides peut cibler un simple disque lent local plutôt que du S3. Jusqu'ici le HSM n'avait de sens
+  qu'avec du Stockage Objet actif — ce n'est plus une contrainte.
+- **Question HSM toujours posée** juste après la question du Stockage Objet, quelle que soit la
+  réponse donnée (valeur par défaut pré-cochée sur la réponse au Stockage Objet, sans l'imposer).
+- **Calcul découplé** (`compute_mailstore_sizing`, `suggest_mailstore_count`) : le déclenchement du
+  calcul primaire/secondaire et de la règle "volumétrie non dimensionnante" pour le nombre de
+  mailstores reposent maintenant sur `hsm_active` seul, plus sur `stockage_objet ET hsm_active`.
+- **Affichage dynamique** : en-tête de colonne "Secondaire (S3, Go)" ou "Secondaire (lent, Go)"
+  selon le cas ; texte du récapitulatif des besoins adapté ("délestage vers un stockage secondaire
+  lent/S3") ; routage dynamique du secondaire dans le Bilan des besoins (catégorie "Stockage Objet"
+  seulement si réellement sur S3, sinon "Disque lent" — même mécanisme que pour le backup).
+- Testé : cas HSM sans Stockage Objet (129500 Go routés en "Disque lent", "Stockage Objet" à "—") et
+  non-régression du cas HSM+S3 existant (Amboise, chiffres et libellés inchangés).
+
 ## 0.12.0 — Nettoyage, doc et fichier de référence
 - **Suppression du "téléphone d'urgence"** (chapitre Parties prenantes, section client) : hérité du
   Générateur de DAT, sans intérêt en avant-vente — retiré du template, de `generate_pdf.py`, de

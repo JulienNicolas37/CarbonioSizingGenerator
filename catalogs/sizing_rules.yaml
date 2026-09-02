@@ -205,12 +205,19 @@ storage_categories:
     disque_lent:
       fields: []
     stockage_objet:
-      fields: [disk_secondaire_gb]
-  # Le champ de backup est traité à part : sa catégorie dépend de
-  # infra.backup_sur_s3 (pas une composition fixe comme les autres).
+      fields: []
+  # Les champs backup et secondaire sont routés dynamiquement selon le
+  # contexte du client (pas une composition fixe comme les champs
+  # ci-dessus) :
   backup_field: disk_backup_gb
   backup_category_if_s3: stockage_objet
   backup_category_if_not_s3: disque_lent
+  # Le secondaire (délestage HSM) va en "stockage_objet" seulement si le
+  # Stockage Objet est réellement actif ; sinon (HSM sans Stockage Objet
+  # -> délestage vers un disque lent local) il va en "disque_lent".
+  secondaire_field: disk_secondaire_gb
+  secondaire_category_if_s3: stockage_objet
+  secondaire_category_if_not_s3: disque_lent
 
 optional_components:
   # Composants activés par une question dédiée du questionnaire, pas par

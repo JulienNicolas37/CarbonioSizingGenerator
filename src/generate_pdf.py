@@ -134,19 +134,28 @@ def _diagram_for(raw_nodes: list, component_labels: dict) -> str:
     return build_tikz(zones=ZONES, nodes=diagram_nodes, flows=[], network_equipment=[], legend_entries=[])
 
 
-def categorize_storage(totals: dict, backup_sur_s3: bool, storage_rules: dict) -> dict:
+def categorize_storage(totals: dict, backup_sur_s3: bool, secondaire_is_s3: bool, storage_rules: dict) -> dict:
     """Regroupe les colonnes disque détaillées (chapitre "Prérequis
     techniques") en catégories de synthèse pour le "Bilan des besoins".
     La composition de chaque catégorie vient de sizing_rules.yaml
-    (storage_categories) — modifiable sans toucher au code."""
+    (storage_categories) — modifiable sans toucher au code. Le backup et
+    le secondaire (délestage HSM) sont routés dynamiquement : le
+    secondaire va en stockage Objet seulement si le Stockage Objet est
+    réellement actif, sinon (HSM sans Stockage Objet -> délestage vers
+    un disque lent local) il va en disque lent."""
     backup_field = storage_rules.get("backup_field", "disk_backup_gb")
     backup_category = (storage_rules.get("backup_category_if_s3") if backup_sur_s3
                         else storage_rules.get("backup_category_if_not_s3"))
+    secondaire_field = storage_rules.get("secondaire_field", "disk_secondaire_gb")
+    secondaire_category = (storage_rules.get("secondaire_category_if_s3") if secondaire_is_s3
+                            else storage_rules.get("secondaire_category_if_not_s3"))
     result = {}
     for cat_name, cat_def in storage_rules.get("categories", {}).items():
         total = sum(totals.get(f, 0) for f in cat_def.get("fields", []))
         if cat_name == backup_category:
             total += totals.get(backup_field, 0)
+        if cat_name == secondaire_category:
+            total += totals.get(secondaire_field, 0)
         result[cat_name] = total
     return result
 
@@ -184,11 +193,12 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
     bilan_totals = {key: totals[key] + qualif_totals[key] for key in totals}
 
     backup_sur_s3 = client_config.get("infra", {}).get("backup_sur_s3", False)
+    secondaire_is_s3_flag = bool(client_raw.get("stockage_objet")) and bool(client_config.get("infra", {}).get("hsm_active"))
     storage_rules = catalogs["sizing_rules"]["storage_categories"]
     storage_categories = {
-        "production": categorize_storage(totals, backup_sur_s3, storage_rules),
-        "qualification": categorize_storage(qualif_totals, False, storage_rules),  # jamais de backup en qualif
-        "bilan": categorize_storage(bilan_totals, backup_sur_s3, storage_rules),
+        "production": categorize_storage(totals, backup_sur_s3, secondaire_is_s3_flag, storage_rules),
+        "qualification": categorize_storage(qualif_totals, False, False, storage_rules),  # jamais de backup/secondaire en qualif
+        "bilan": categorize_storage(bilan_totals, backup_sur_s3, secondaire_is_s3_flag, storage_rules),
     }
 
     infra_resolved = client_config.get("infra_resolved", {})
@@ -247,13 +257,22 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
     if active_services:
         services_display += ", " + ", ".join(active_services)
     infra_raw = client_config.get("infra", {})
+    stockage_objet_actif = bool(client_raw.get("stockage_objet"))
+    hsm_active = infra_raw.get("hsm_active", False)
+    # Le module HSM délie les données froides du stockage primaire, que
+    # la cible soit du S3 (si Stockage Objet actif) ou un simple disque
+    # lent local (sinon) — décidé ici, une fois pour tout le document.
+    secondaire_is_s3 = hsm_active and stockage_objet_actif
+    secondaire_label = "S3" if secondaire_is_s3 else "lent"
     besoins = {
         "domaines": client_raw.get("domaines", "[à préciser]"),
         "comptes": client_raw.get("comptes", "[à préciser]"),
         "volumetrie_to": client_raw.get("volumetrie_to", "[à préciser]"),
-        "stockage_objet": "Oui" if client_raw.get("stockage_objet") else "Non",
+        "stockage_objet": "Oui" if stockage_objet_actif else "Non",
         "services_display": escape_latex(services_display),
-        "hsm_active": infra_raw.get("hsm_active", False),
+        "hsm_active": hsm_active,
+        "secondaire_is_s3": secondaire_is_s3,
+        "secondaire_label": secondaire_label,
         "retention_days": infra_raw.get("retention_days"),
         "backups": infra_raw.get("backups", False),
         "backup_sur_s3": infra_raw.get("backup_sur_s3", False),
