@@ -65,7 +65,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 60
+    disk_appli_gb: 0
 - id: proxy_mta02
   zone: DMZ
   components:
@@ -77,7 +77,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 60
+    disk_appli_gb: 0
 - id: services01
   zone: LAN
   components:
@@ -151,7 +151,7 @@ qualification_nodes:
     vcpu: 2
     ram_gb: 4
     disk_os_gb: 20
-    disk_appli_gb: 40
+    disk_appli_gb: 0
 - id: qualif_services
   zone: LAN
   components:

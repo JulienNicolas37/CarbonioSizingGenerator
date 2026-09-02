@@ -43,28 +43,24 @@ proxy:
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
-  disk_appli_gb: 60
 
 mta_in:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
-  disk_appli_gb: 90
 
 mta_auth:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
-  disk_appli_gb: 90
 
 mta_out:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
-  disk_appli_gb: 90
 
 files:
   zone: LAN

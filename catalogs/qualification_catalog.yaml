@@ -44,28 +44,24 @@ proxy:
   vcpu: 2
   ram_gb: 4
   disk_os_gb: 20
-  disk_appli_gb: 20
 
 mta_in:
   zone: DMZ
   vcpu: 2
   ram_gb: 4
   disk_os_gb: 20
-  disk_appli_gb: 20
 
 mta_auth:
   zone: DMZ
   vcpu: 2
   ram_gb: 4
   disk_os_gb: 20
-  disk_appli_gb: 20
 
 mta_out:
   zone: DMZ
   vcpu: 2
   ram_gb: 4
   disk_os_gb: 20
-  disk_appli_gb: 20
 
 mailbox:
   zone: LAN
@@ -78,11 +74,11 @@ mailbox:
 # --- Specs combinées (mode minimal, par défaut) ---
 combined_dmz:
   # 1 VM qui porte tous les rôles DMZ (proxy + mta_in + mta_auth + mta_out)
+  # — disque OS seul, comme pour ces 4 rôles pris individuellement.
   zone: DMZ
   vcpu: 2
   ram_gb: 4
   disk_os_gb: 20
-  disk_appli_gb: 40
 
 combined_services:
   # 1 VM qui porte mesh + directory_master + database (pas de réplique en

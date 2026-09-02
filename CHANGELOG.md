@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 — Suppression du disque applicatif pour proxy/MTA
+- **`disk_appli_gb` retiré du catalogue** pour `proxy`, `mta_in`, `mta_auth`, `mta_out`
+  (`catalogs/vm_catalog.yaml` et `catalogs/qualification_catalog.yaml`, y compris `combined_dmz` du
+  mode qualification minimal) — le disque OS seul suffit pour ces natures de nœud.
+- `_sizing_from_catalog()` et `qual_sizing()` (`sizing_engine.py`) sécurisés pour ce champ désormais
+  optionnel (repli à 0 Go, plutôt qu'une erreur si absent du catalogue).
+- Vérifié sur l'exemple Amboise : les 8 nœuds proxy/mta_* affichent "0" en colonne Appli, disque OS
+  (30 Go) inchangé, aucun autre chiffre du tableau affecté.
+
 ## 0.14.0 — Disque "Backup metadata"
 - **Nouveau disque fixe "Backup metadata"** (200 Go par défaut, configurable via
   `sizing_rules.yaml` → `mailstore_scaling.disque_par_mailstore.backup_metadata_gb`) ajouté sur

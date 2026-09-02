@@ -126,7 +126,7 @@ def _sizing_from_catalog(vm_catalog: dict, component_id: str) -> dict:
         "vcpu": specs["vcpu"],
         "ram_gb": specs["ram_gb"],
         "disk_os_gb": specs["disk_os_gb"],
-        "disk_appli_gb": specs["disk_appli_gb"],
+        "disk_appli_gb": specs.get("disk_appli_gb", 0),  # absent pour proxy/mta_* : disque OS seul suffit
     }
     if "disk_store_gb" in specs:
         sizing["disk_store_gb"] = specs["disk_store_gb"]
@@ -243,7 +243,7 @@ def build_qualification_nodes(qual_catalog: dict, sizing_rules: dict,
     def qual_sizing(specs: dict) -> dict:
         sizing = {
             "vcpu": specs["vcpu"], "ram_gb": specs["ram_gb"],
-            "disk_os_gb": specs["disk_os_gb"], "disk_appli_gb": specs["disk_appli_gb"],
+            "disk_os_gb": specs["disk_os_gb"], "disk_appli_gb": specs.get("disk_appli_gb", 0),
         }
         if "disk_store_gb" in specs:
             sizing["disk_store_gb"] = specs["disk_store_gb"]
