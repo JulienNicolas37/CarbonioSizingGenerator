@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.14.0 — Disque "Backup metadata"
+- **Nouveau disque fixe "Backup metadata"** (200 Go par défaut, configurable via
+  `sizing_rules.yaml` → `mailstore_scaling.disque_par_mailstore.backup_metadata_gb`) ajouté sur
+  chaque mailstore dès que les backups sont activés — valeur FIXE, sans calcul ni marge de capacité,
+  quelle que soit la taille réelle des backups (catalogue/index du logiciel de sauvegarde).
+- Nouvelle colonne "Backup metadata (Go)" dans le tableau de dimensionnement, avec repli "—" si les
+  backups ne sont pas activés.
+- Routé dans la catégorie "Disque rapide" du Bilan des besoins (statique, toujours rapide quel que
+  soit le contexte S3/lent du reste du dimensionnement).
+- Vérifié sur l'exemple Amboise : +200 Go par mailstore (1000 Go de total sur 5 mailstores),
+  disque rapide total passant de 6880 à 7880 Go, cohérent.
+
 ## 0.13.0 — HSM découplé du Stockage Objet
 - **Le module HSM peut désormais être activé sans Stockage Objet** : le délestage des données
   froides peut cibler un simple disque lent local plutôt que du S3. Jusqu'ici le HSM n'avait de sens

@@ -119,6 +119,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 2100
     disk_backup_gb: 2800
+    disk_backup_metadata_gb: 200
 - id: application01
   zone: LAN
   components:

@@ -155,6 +155,13 @@ mailstore_scaling:
     # effectivement utilisés pour ce mailstore.
     backup_multiplier: 1.3
 
+    # Disque "Backup metadata" (rapide) : valeur FIXE ajoutée par
+    # mailstore dès que les backups sont activés, quelle que soit la
+    # taille réelle des backups — pas de formule, juste un disque dédié
+    # au catalogue/index du logiciel de sauvegarde. Ajustable selon le
+    # retour d'expérience.
+    backup_metadata_gb: 200
+
     # --- Marge de capacité (mise en place d'une nouvelle plateforme) ---
     # La volumétrie du client représente son USAGE réel, pas une capacité
     # à provisionner telle quelle : sans marge, le stockage serait déjà
@@ -201,7 +208,7 @@ storage_categories:
   # liste les champs de sizing (nodes[].sizing.*) qui la composent.
   categories:
     disque_rapide:
-      fields: [disk_os_gb, disk_appli_gb, disk_store_gb]
+      fields: [disk_os_gb, disk_appli_gb, disk_store_gb, disk_backup_metadata_gb]
     disque_lent:
       fields: []
     stockage_objet:

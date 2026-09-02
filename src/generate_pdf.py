@@ -101,7 +101,7 @@ def _process_nodes(raw_nodes: list, component_labels: dict) -> tuple:
     identiquement pour la production ET la qualification."""
     nodes = []
     totals = {"vcpu": 0, "ram_gb": 0, "disk_os_gb": 0, "disk_appli_gb": 0,
-              "disk_store_gb": 0, "disk_secondaire_gb": 0, "disk_backup_gb": 0}
+              "disk_store_gb": 0, "disk_secondaire_gb": 0, "disk_backup_gb": 0, "disk_backup_metadata_gb": 0}
     components_seen = []
     for n in raw_nodes:
         sizing = n.get("sizing", {})

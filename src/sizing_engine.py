@@ -205,6 +205,12 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
         sizing["disk_secondaire_gb"] = secondary_gb
     if backup_gb:
         sizing["disk_backup_gb"] = backup_gb
+    if backups:
+        # Disque rapide dédié aux métadonnées de sauvegarde (catalogue,
+        # index du logiciel de backup) — valeur FIXE, sans calcul ni
+        # marge de capacité, quelle que soit la taille des backups.
+        # Ajustable selon le retour d'expérience (voir sizing_rules.yaml).
+        sizing["disk_backup_metadata_gb"] = rules.get("backup_metadata_gb", 200)
 
     return sizing
 
