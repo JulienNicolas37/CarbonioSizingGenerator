@@ -335,23 +335,49 @@ def build_nodes(client_config: dict, catalogs: dict,
     ha_suggestion = suggest_ha_tier(comptes, imap, sizing_rules)
     ha_level = ha_level_override if ha_level_override is not None else ha_suggestion.level
     tier = next(t for t in sizing_rules["ha_scaling"]["tiers"] if t["level"] == ha_level)
-    for group in tier["groups"]:
-        base_id = group.get("id_prefix") or "_".join(group["components"])
-        add_group(base_id, group["zone"], group["components"], group["count"])
 
-    # --- Services (mesh + directory_master/replica + database) ---
-    for node_id, components in SERVICES_PATTERN:
-        nodes.append({
-            "id": node_id,
-            "zone": "LAN",
-            "components": list(components),
-            "sizing": _sizing_from_catalog(vm_catalog, components[-1]),
-        })
-
-    # --- Mailstores ---
+    # --- Mailstores (calculé ici, avant DMZ/Services, car le mode
+    # minimal du palier 0 dépend du nombre de mailstores retenu) ---
     mailstore_suggestion = suggest_mailstore_count(comptes, volumetrie_to, hsm_active, sizing_rules)
     mailstore_count = (mailstore_count_override if mailstore_count_override is not None
                        else mailstore_suggestion.count)
+
+    # Mode minimal : palier 0 ET un seul mailstore -> 1 nœud DMZ combiné
+    # (au lieu de 2) et Services combiné en 1 nœud sans réplica (au lieu
+    # de 3). Voir sizing_rules.yaml (ha_scaling.minimal_mode) pour le
+    # choix stratégique derrière cette règle.
+    minimal_rules = sizing_rules["ha_scaling"].get("minimal_mode", {})
+    minimal_mode = (
+        minimal_rules.get("enabled", False)
+        and ha_level == 0
+        and mailstore_count <= minimal_rules.get("max_mailstore_count", 1)
+    )
+
+    for group in tier["groups"]:
+        base_id = group.get("id_prefix") or "_".join(group["components"])
+        count = 1 if minimal_mode else group["count"]
+        add_group(base_id, group["zone"], group["components"], count)
+
+    # --- Services (mesh + directory_master/replica + database) ---
+    if minimal_mode:
+        # Pas de réplica LDAP en mode minimal : simplicité assumée pour
+        # les petites infras, le mailstore reste néanmoins hors DMZ.
+        nodes.append({
+            "id": "services01",
+            "zone": "LAN",
+            "components": ["mesh", "directory_master", "database"],
+            "sizing": _sizing_from_catalog(vm_catalog, "database"),
+        })
+    else:
+        for node_id, components in SERVICES_PATTERN:
+            nodes.append({
+                "id": node_id,
+                "zone": "LAN",
+                "components": list(components),
+                "sizing": _sizing_from_catalog(vm_catalog, components[-1]),
+            })
+
+    # --- Sizing des mailstores (nombre déjà arrêté ci-dessus) ---
     mailstore_sizing = compute_mailstore_sizing(
         vm_catalog, sizing_rules, mailstore_count, volumetrie_to,
         hsm_active, retention_days, backups,

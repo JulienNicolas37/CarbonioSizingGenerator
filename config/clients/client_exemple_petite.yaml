@@ -54,19 +54,7 @@ infra:
   qualification_active: true
   qualification_ha_mirror: true
 nodes:
-- id: proxy_mta01
-  zone: DMZ
-  components:
-  - proxy
-  - mta_in
-  - mta_auth
-  - mta_out
-  sizing:
-    vcpu: 4
-    ram_gb: 8
-    disk_os_gb: 30
-    disk_appli_gb: 0
-- id: proxy_mta02
+- id: proxy_mta
   zone: DMZ
   components:
   - proxy
@@ -83,25 +71,6 @@ nodes:
   components:
   - mesh
   - directory_master
-  sizing:
-    vcpu: 4
-    ram_gb: 16
-    disk_os_gb: 30
-    disk_appli_gb: 160
-- id: services02
-  zone: LAN
-  components:
-  - mesh
-  - directory_replica
-  sizing:
-    vcpu: 4
-    ram_gb: 16
-    disk_os_gb: 30
-    disk_appli_gb: 160
-- id: services03
-  zone: LAN
-  components:
-  - mesh
   - database
   sizing:
     vcpu: 4

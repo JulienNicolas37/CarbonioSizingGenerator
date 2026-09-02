@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.16.0 — Mode minimal (palier 0 remplacé)
+- **Nouveau mode minimal** qui remplace le palier HA 0 : quand comptes < 4000 ET mailstore_count == 1
+  (les DEUX conditions, sinon retour au comportement précédent), l'infrastructure de production
+  devient 1 seul nœud DMZ combiné (proxy+mta_in+mta_auth+mta_out, au lieu de 2) et 1 seul nœud
+  Services combiné SANS réplica LDAP (mesh+directory_master+database, au lieu des 3 nœuds
+  habituels). Choix stratégique documenté dans `sizing_rules.yaml` : ne pas effrayer les petits
+  clients on-premise migrant depuis une infra Zimbra mono-nœud, tout en gardant le mailstore hors
+  DMZ (contrainte non négociable, jamais remise en cause par ce mode).
+- **Bascule automatique dès le 2e mailstore** (même sous 4000 comptes) ou dès le palier HA 1+ (même
+  avec 1 seul mailstore) : retour immédiat au DMZ à 2 nœuds et aux 3 nœuds Services avec réplica —
+  évite le cas bancal d'un DMZ redondant avec un LDAP sans aucune tolérance de panne.
+- Nouvelle règle `ha_scaling.minimal_mode` dans `sizing_rules.yaml` (activable/désactivable,
+  `max_mailstore_count` configurable).
+- Aucun effet sur la qualification, qui garde son propre mode minimal indépendant.
+- Testé : petite infra (800 comptes, 1 mailstore) → mode minimal confirmé (schéma + tableau) ;
+  bascule vérifiée à 2 mailstores (même sous 4000 comptes) et à 4500 comptes avec 1 seul mailstore
+  (pas de mode minimal, DMZ éclaté + réplica conservés) ; non-régression sur Amboise (palier 3).
+
 ## 0.15.0 — Suppression du disque applicatif pour proxy/MTA
 - **`disk_appli_gb` retiré du catalogue** pour `proxy`, `mta_in`, `mta_auth`, `mta_out`
   (`catalogs/vm_catalog.yaml` et `catalogs/qualification_catalog.yaml`, y compris `combined_dmz` du
