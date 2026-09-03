@@ -202,13 +202,23 @@ review_step:
 
 application_grouping:
   # Un nœud "ApplicationNN" par groupe, créé seulement si au moins un des
-  # services du groupe est sélectionné par le client.
+  # services "de base" du groupe est actif. Les services "flottants"
+  # (floating_services ci-dessous) rejoignent le premier groupe de base
+  # actif parmi leur liste de préférence, plutôt que de forcer la
+  # création d'une VM dédiée quand ce n'est pas nécessaire.
   application_01:
-    services: [chat, tache]
-    label: "Application01 — Chat + Tâches"
+    services: [chat]
+    label: "Application01 — Chat"
   application_02:
     services: [files, edition_collaborative]
     label: "Application02 — Files + Édition collaborative"
+  floating_services:
+    # "Tâches" peut cohabiter avec Chat OU avec Files/Édition
+    # collaborative — ne crée sa propre VM que si NI Chat NI
+    # Files/Édition collaborative n'est actif (sinon une seule tâche
+    # cochée forcerait une VM entière rien que pour elle).
+    tache:
+      join_groups: [application_01, application_02]
 
 standalone_nodes:
   # Composants avec leur propre VM dédiée, jamais partagée, créés

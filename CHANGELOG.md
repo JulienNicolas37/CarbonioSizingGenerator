@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.17.0 — Tâches rejoint le groupe applicatif actif
+- **Correctif** : "Tâches" était figé au groupe "Chat" (`services: [chat, tache]`) — si le client
+  choisissait Files + Édition collaborative sans Chat, "Tâches" forçait une VM entière rien que pour
+  lui plutôt que de rejoindre le groupe Files/Édition collaborative déjà existant.
+- **Nouveau mécanisme "services flottants"** (`application_grouping.floating_services` dans
+  `sizing_rules.yaml`) : "Tâches" rejoint désormais le premier groupe de base actif parmi Chat ou
+  Files/Édition collaborative, et ne crée sa propre VM que si aucun des deux n'est actif (fallback
+  inévitable, rien avec qui cohabiter).
+- `application_groups()` (`sizing_engine.py`) réécrite pour ce mécanisme, généralisable à d'autres
+  services flottants si besoin.
+- Testé sur 4 scénarios : cas de Julien (Files + Édition collaborative + Tâches sans Chat → 1 seule
+  VM `application01` avec les 3 composants, plus de VM dédiée) ; cas historique Chat + Tâches
+  (inchangé) ; Tâches seule sans rien d'autre (garde sa VM dédiée, comportement inévitable) ; rien
+  coché (aucune VM). Non-régression confirmée sur les 2 exemples réels.
+
 ## 0.16.0 — Mode minimal (palier 0 remplacé)
 - **Nouveau mode minimal** qui remplace le palier HA 0 : quand comptes < 4000 ET mailstore_count == 1
   (les DEUX conditions, sinon retour au comportement précédent), l'infrastructure de production

@@ -94,7 +94,7 @@ nodes:
   components:
   - chat
   - tasks
-  label: Application01 — Chat + Tâches
+  label: Application01 — Chat
   sizing:
     vcpu: 4
     ram_gb: 4

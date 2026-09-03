@@ -100,14 +100,47 @@ def needs_imap_question(comptes: int, sizing_rules: dict) -> bool:
 
 
 def application_groups(services: dict, sizing_rules: dict) -> list:
-    """Groupes Application (01/02...) à créer, selon les services cochés."""
-    groups = sizing_rules["application_grouping"]
+    """Groupes Application (01/02...) à créer, selon les services cochés.
+
+    Les services "flottants" (floating_services dans sizing_rules.yaml,
+    ex. Tâches) rejoignent le premier groupe de base actif parmi leur
+    liste de préférence (join_groups), plutôt que de forcer la création
+    d'une VM dédiée rien que pour eux quand ce n'est pas nécessaire. Ils
+    ne créent leur propre nœud que si AUCUN groupe de leur liste n'est
+    actif.
+    """
+    grouping = sizing_rules["application_grouping"]
+    base_group_ids = [gid for gid in grouping if gid != "floating_services"]
+    floating = grouping.get("floating_services", {})
+
+    active_by_group = {
+        gid: [s for s in grouping[gid]["services"] if services.get(s, False)]
+        for gid in base_group_ids
+    }
+
+    standalone_services = []
+    for float_service, float_def in floating.items():
+        if not services.get(float_service, False):
+            continue
+        for candidate in float_def.get("join_groups", []):
+            if active_by_group.get(candidate):
+                active_by_group[candidate].append(float_service)
+                break
+        else:
+            standalone_services.append(float_service)
+
     result = []
-    for group_id, group_def in groups.items():
-        active_services = [s for s in group_def["services"] if services.get(s, False)]
+    for gid in base_group_ids:
+        active_services = active_by_group[gid]
         if active_services:
             components = [SERVICE_TO_COMPONENT[s] for s in active_services]
-            result.append({"group": group_id, "components": components, "label": group_def["label"]})
+            result.append({"group": gid, "components": components, "label": grouping[gid]["label"]})
+    for float_service in standalone_services:
+        result.append({
+            "group": f"standalone_{float_service}",
+            "components": [SERVICE_TO_COMPONENT[float_service]],
+            "label": f"Application — {float_service.capitalize()}",
+        })
     return result
 
 
