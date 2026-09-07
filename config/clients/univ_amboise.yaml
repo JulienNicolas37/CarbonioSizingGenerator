@@ -207,7 +207,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 400
     disk_secondaire_gb: 11000
-    disk_backup_gb: 14900
+    disk_backup_gb: 10400
     disk_backup_metadata_gb: 200
 - id: mailstore02
   zone: LAN
@@ -220,7 +220,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 400
     disk_secondaire_gb: 11000
-    disk_backup_gb: 14900
+    disk_backup_gb: 10400
     disk_backup_metadata_gb: 200
 - id: mailstore03
   zone: LAN
@@ -233,7 +233,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 400
     disk_secondaire_gb: 11000
-    disk_backup_gb: 14900
+    disk_backup_gb: 10400
     disk_backup_metadata_gb: 200
 - id: mailstore04
   zone: LAN
@@ -246,7 +246,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 400
     disk_secondaire_gb: 11000
-    disk_backup_gb: 14900
+    disk_backup_gb: 10400
     disk_backup_metadata_gb: 200
 - id: mailstore05
   zone: LAN
@@ -259,7 +259,7 @@ nodes:
     disk_appli_gb: 500
     disk_store_gb: 400
     disk_secondaire_gb: 11000
-    disk_backup_gb: 14900
+    disk_backup_gb: 10400
     disk_backup_metadata_gb: 200
 - id: application01
   zone: LAN

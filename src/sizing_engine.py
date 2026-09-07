@@ -185,12 +185,15 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
         Stockage Objet — décidé à l'affichage, pas ici) ;
       - sinon : tout reste en primaire (= volumétrie moyenne) ;
       - si backups activés : 1,3x la taille cumulée primaire + secondaire
-        (sur la base de l'usage réel, pas de la capacité avec marge) ;
+        (sur la base de l'usage réel) ;
       - une MARGE de capacité (headroom_pct, 30 % par défaut) est ensuite
-        appliquée aux 3 supports (primaire, secondaire, backup) telle que
-        cette part de la capacité totale provisionnée reste disponible à
+        appliquée au primaire et au secondaire SEULEMENT (pas au backup —
+        le multiplicateur 1,3x est déjà une marge en soi, cumuler les
+        deux produirait un volume de backup excessif) telle que cette
+        part de la capacité totale provisionnée reste disponible à
         l'issue de la migration (capacité = usage / (1 - headroom_pct/100)),
-        arrondie à la centaine de Go la plus proche.
+        arrondie à la centaine de Go la plus proche (le backup est
+        seulement arrondi à la centaine, sans marge).
     """
     base = vm_catalog["mailbox"]
     rules = sizing_rules["mailstore_scaling"]["disque_par_mailstore"]
@@ -225,7 +228,12 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
 
     primary_gb = with_headroom(primary_gb_usage)
     secondary_gb = with_headroom(secondary_gb_usage)
-    backup_gb = with_headroom(backup_gb_usage)
+    # Pas de marge de capacité sur le backup : le multiplicateur 1,3x est
+    # déjà une marge en soi (rétention/versionning), et il est calculé sur
+    # l'usage BRUT (pas sur les capacités primaire/secondaire déjà
+    # gonflées de la marge) — cumuler une seconde marge de 30 % par-dessus
+    # produirait un volume de backup excessif.
+    backup_gb = round(backup_gb_usage / 100) * 100 if backup_gb_usage else 0
 
     sizing = {
         "vcpu": base["vcpu"],

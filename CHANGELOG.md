@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.18.0 — Plus de marge de capacité sur le backup
+- **La marge de capacité de 30 % (headroom_pct) ne s'applique plus au volume de backup** — le
+  multiplicateur 1,3x est déjà une marge en soi (rétention/versionning), et il est calculé sur
+  l'usage brut (pas sur les capacités primaire/secondaire déjà gonflées de 30 %) ; cumuler une
+  seconde marge par-dessus produisait un volume de backup excessif.
+- Le primaire et le secondaire conservent leur marge de 30 % inchangée ; le backup est désormais
+  seulement arrondi à la centaine de Go, sans marge.
+- Vérifié sur l'exemple Amboise : le backup par mailstore passe de 14900 à 10400 Go (Store et
+  Secondaire inchangés à 400/11000), soit un total "Stockage Objet" (Bilan des besoins) de 107000 Go
+  au lieu de 129500.
+
 ## 0.17.0 — Tâches rejoint le groupe applicatif actif
 - **Correctif** : "Tâches" était figé au groupe "Chat" (`services: [chat, tache]`) — si le client
   choisissait Files + Édition collaborative sans Chat, "Tâches" forçait une VM entière rien que pour
