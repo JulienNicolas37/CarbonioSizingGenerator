@@ -43,57 +43,61 @@ proxy:
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
+  disk_appli_gb: 50
 
 mta_in:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
+  disk_appli_gb: 50
 
 mta_auth:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
+  disk_appli_gb: 50
 
 mta_out:
   zone: DMZ
   vcpu: 4
   ram_gb: 8
   disk_os_gb: 30
+  disk_appli_gb: 50
 
 files:
   zone: LAN
   vcpu: 4
-  ram_gb: 4
+  ram_gb: 12
   disk_os_gb: 30
   disk_appli_gb: 20
 
 docs:
   zone: LAN
   vcpu: 4
-  ram_gb: 4
+  ram_gb: 12
   disk_os_gb: 30
   disk_appli_gb: 20
 
 chat:
   zone: LAN
   vcpu: 4
-  ram_gb: 4
+  ram_gb: 12
   disk_os_gb: 30
   disk_appli_gb: 20
 
 tasks:
   zone: LAN
   vcpu: 4
-  ram_gb: 4
+  ram_gb: 12
   disk_os_gb: 30
   disk_appli_gb: 20
 
 videoconf:
   zone: DMZ
   vcpu: 4
-  ram_gb: 4
+  ram_gb: 12
   disk_os_gb: 30
   disk_appli_gb: 100
 
