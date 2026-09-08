@@ -20,6 +20,10 @@ Production & \VAR{ totals.vcpu } & \VAR{ totals.ram_gb } & \VAR{ storage_categor
 Qualification & \VAR{ qualif_totals.vcpu } & \VAR{ qualif_totals.ram_gb } & \VAR{ storage_categories.qualification.disque_rapide } & \VAR{ storage_categories.qualification.disque_lent } & --- \\
 \hline
 \BLOCK{ endif }
+\BLOCK{ if vmware_snapshot_gb }
+VMware gestion des snapshots & --- & --- & \VAR{ vmware_snapshot_gb } & --- & --- \\
+\hline
+\BLOCK{ endif }
 \rowcolor{lightbg}
 \textbf{Total général} & \textbf{\VAR{ bilan_totals.vcpu }} & \textbf{\VAR{ bilan_totals.ram_gb }} & \textbf{\VAR{ storage_categories.bilan.disque_rapide }} & \textbf{\VAR{ storage_categories.bilan.disque_lent }} & \textbf{\BLOCK{ if storage_categories.bilan.stockage_objet }\VAR{ storage_categories.bilan.stockage_objet }\BLOCK{ else }---\BLOCK{ endif }} \\
 \hline

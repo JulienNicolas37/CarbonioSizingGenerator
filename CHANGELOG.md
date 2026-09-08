@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.19.0 — Ligne "VMware gestion des snapshots"
+- **Nouvelle question** "L'environnement de virtualisation est-il VMware ?", posée juste après la
+  plateforme de destination, uniquement si celle-ci est On Premise ou SaaS dédié (sans objet pour
+  CarbonioCloud, plateforme Zextras gérée).
+- Si oui : **nouvelle ligne "VMware gestion des snapshots"** dans le Bilan des besoins, juste avant
+  le total général — ajoute 15 % du disque rapide de la PRODUCTION uniquement (pas la
+  qualification) à la colonne "Disque rapide".
+- Pourcentage configurable dans `sizing_rules.yaml` (`vmware_snapshot.pct_disque_rapide`).
+- Vérifié sur l'exemple Amboise (destination On Premise) : 15 % de 7220 Go = 1083 Go, total général
+  disque rapide passant de 7670 à 8753 Go. Non-régression confirmée sur les 2 exemples réels (aucune
+  ligne VMware, valeurs inchangées).
+
 ## 0.18.0 — Plus de marge de capacité sur le backup
 - **La marge de capacité de 30 % (headroom_pct) ne s'applique plus au volume de backup** — le
   multiplicateur 1,3x est déjà une marge en soi (rétention/versionning), et il est calculé sur

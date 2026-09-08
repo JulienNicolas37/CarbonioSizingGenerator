@@ -201,6 +201,24 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "bilan": categorize_storage(bilan_totals, backup_sur_s3, secondaire_is_s3_flag, storage_rules),
     }
 
+    # --- VMware : gestion des snapshots (nouvelle ligne du Bilan des
+    # besoins, juste avant le total général) — uniquement si la
+    # destination est On Premise ou SaaS dédié (pas CarbonioCloud) ET
+    # que l'environnement de virtualisation est VMware. Porte sur le
+    # disque rapide de la PRODUCTION uniquement (pas la qualification).
+    vmware_rules = catalogs["sizing_rules"].get("vmware_snapshot", {})
+    destination_platform_raw = client_config.get("prestation", {}).get("destination_platform")
+    vmware_active = (
+        bool(client_config.get("infra", {}).get("vmware_virtualise"))
+        and destination_platform_raw in ("onpremise", "saasdedie")
+    )
+    vmware_snapshot_gb = (
+        round(storage_categories["production"]["disque_rapide"] * vmware_rules.get("pct_disque_rapide", 0) / 100)
+        if vmware_active else 0
+    )
+    if vmware_snapshot_gb:
+        storage_categories["bilan"]["disque_rapide"] += vmware_snapshot_gb
+
     infra_resolved = client_config.get("infra_resolved", {})
     qualification = {
         "active": qualification_active,
@@ -416,6 +434,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "diagram_tikz_raw_qualif": diagram_tikz_raw_qualif,
         "bilan_totals": bilan_totals,
         "storage_categories": storage_categories,
+        "vmware_snapshot_gb": vmware_snapshot_gb,
         "prestation": prestation,
         "migration": migration,
         "migration_raci": migration_raci,

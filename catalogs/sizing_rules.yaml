@@ -227,6 +227,15 @@ standalone_nodes:
     components: [videoconf]
     zone: DMZ
 
+# Espace disque supplémentaire pour la gestion des snapshots, si
+# l'environnement de virtualisation est VMware (On Premise ou SaaS
+# dédié uniquement — sans objet pour CarbonioCloud, géré par Zextras).
+# Ligne dédiée "VMware gestion des snapshots" dans le Bilan des
+# besoins, juste avant le total général. Porte uniquement sur le
+# disque rapide de l'instance de PRODUCTION (pas la qualification).
+vmware_snapshot:
+  pct_disque_rapide: 15
+
 storage_categories:
   # Catégories de synthèse utilisées dans le chapitre "Bilan des besoins"
   # (regroupement des colonnes disque détaillées du chapitre "Prérequis

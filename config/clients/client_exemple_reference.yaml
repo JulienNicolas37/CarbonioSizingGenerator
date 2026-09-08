@@ -154,6 +154,12 @@ infra:
   backup_sur_s3: false             # backup stocké sur S3 plutôt qu'en stockage block (n'a d'effet
                                     # que si backups=true)
 
+  # --- Virtualisation (pertinent seulement si prestation.destination_platform
+  # est "onpremise" ou "saasdedie" — sans objet pour "carboniocloud") ---
+  vmware_virtualise: false          # environnement de virtualisation VMware -> ajoute une ligne
+                                    # "VMware gestion des snapshots" au Bilan des besoins (+15 % du
+                                    # disque rapide de la PRODUCTION uniquement, pas la qualification)
+
   # --- Qualification ---
   qualification_active: false      # infrastructure de qualification prévue pour ce projet
   qualification_ha_mirror: false   # true = reproduit la structure HA de la production à taille

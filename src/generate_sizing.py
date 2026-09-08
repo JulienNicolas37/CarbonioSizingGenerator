@@ -157,6 +157,16 @@ def run_interactive(catalogs: dict) -> dict:
     destination_platform = questionary.select(
         "Quelle est la plateforme de destination ?", choices=destination_platform_choices
     ).ask()
+
+    # Pertinent seulement si le client (On Premise) ou l'hébergeur (SaaS
+    # dédié) opère sa propre infrastructure de virtualisation — sans
+    # objet pour CarbonioCloud, qui est une plateforme Zextras gérée.
+    vmware_virtualise = False
+    if destination_platform in ("onpremise", "saasdedie"):
+        vmware_virtualise = questionary.confirm(
+            "L'environnement de virtualisation est-il VMware ?", default=False
+        ).ask()
+
     mco_contract = questionary.confirm(
         "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
     ).ask()
@@ -285,6 +295,7 @@ def run_interactive(catalogs: dict) -> dict:
             "retention_days": retention_days,
             "backups": backups,
             "backup_sur_s3": backup_sur_s3,
+            "vmware_virtualise": vmware_virtualise,
             "qualification_active": qualification_active,
             "qualification_ha_mirror": qualification_ha_mirror,
         },
