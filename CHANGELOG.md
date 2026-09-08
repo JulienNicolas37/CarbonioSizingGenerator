@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.20.0 — Pool VM technique
+- **Nouvelle question** "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", posée juste
+  après la question VMware — mêmes conditions (On Premise ou SaaS dédié uniquement, sans objet pour
+  CarbonioCloud).
+- Si oui : **nouveau nœud "pool_technique"** ajouté à l'infrastructure de PRODUCTION uniquement (pas
+  la qualification), taille fixe (6 vCPU, 16 Go RAM, 100 Go disque rapide, sans calcul), visible dans
+  le tableau de dimensionnement et le schéma d'architecture (zone LAN).
+- Nouvelle entrée `pool_technique` dans `vm_catalog.yaml` et `component_labels.yaml`, nouvelle règle
+  `optional_components.pool_technique` dans `sizing_rules.yaml` (même mécanisme que l'usine de
+  migration).
+- Vérifié sur l'exemple Amboise : le nœud apparaît avec les bonnes specs, les totaux de production
+  (vCPU 80→86, RAM 212→228, disque rapide 7220→7320) et du Bilan des besoins (7670→7770) sont
+  cohérents. Non-régression confirmée sur les 2 exemples réels (nœud absent, totaux inchangés).
+
 ## 0.19.0 — Ligne "VMware gestion des snapshots"
 - **Nouvelle question** "L'environnement de virtualisation est-il VMware ?", posée juste après la
   plateforme de destination, uniquement si celle-ci est On Premise ou SaaS dédié (sans objet pour

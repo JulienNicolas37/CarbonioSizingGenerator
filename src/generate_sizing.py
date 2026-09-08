@@ -162,9 +162,13 @@ def run_interactive(catalogs: dict) -> dict:
     # dédié) opère sa propre infrastructure de virtualisation — sans
     # objet pour CarbonioCloud, qui est une plateforme Zextras gérée.
     vmware_virtualise = False
+    pool_technique = False
     if destination_platform in ("onpremise", "saasdedie"):
         vmware_virtualise = questionary.confirm(
             "L'environnement de virtualisation est-il VMware ?", default=False
+        ).ask()
+        pool_technique = questionary.confirm(
+            "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", default=False
         ).ask()
 
     mco_contract = questionary.confirm(
@@ -296,6 +300,7 @@ def run_interactive(catalogs: dict) -> dict:
             "backups": backups,
             "backup_sur_s3": backup_sur_s3,
             "vmware_virtualise": vmware_virtualise,
+            "pool_technique": pool_technique,
             "qualification_active": qualification_active,
             "qualification_ha_mirror": qualification_ha_mirror,
         },

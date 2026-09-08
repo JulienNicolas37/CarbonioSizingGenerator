@@ -159,6 +159,9 @@ infra:
   vmware_virtualise: false          # environnement de virtualisation VMware -> ajoute une ligne
                                     # "VMware gestion des snapshots" au Bilan des besoins (+15 % du
                                     # disque rapide de la PRODUCTION uniquement, pas la qualification)
+  pool_technique: false             # réservation d'un nœud "Pool VM technique" (DNS, scripts, etc.)
+                                    # sur l'infrastructure de PRODUCTION uniquement — taille fixe
+                                    # (6 vCPU, 16 Go RAM, 100 Go disque rapide), pas de calcul
 
   # --- Qualification ---
   qualification_active: false      # infrastructure de qualification prévue pour ce projet

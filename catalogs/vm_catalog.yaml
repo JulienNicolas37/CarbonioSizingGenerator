@@ -112,3 +112,13 @@ migration_factory:
   ram_gb: 8
   disk_os_gb: 30
   disk_appli_gb: 500
+
+pool_technique:
+  # Composant optionnel — activé seulement si la question "pool VM
+  # technique ?" est répondue Oui (voir sizing_rules.yaml). Réservation
+  # fixe pour les machines techniques du client (DNS, scripts, etc.),
+  # pas un composant Carbonio.
+  zone: LAN
+  vcpu: 6
+  ram_gb: 16
+  disk_os_gb: 100

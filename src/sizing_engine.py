@@ -461,6 +461,17 @@ def build_nodes(client_config: dict, catalogs: dict,
             "sizing": _sizing_from_catalog(vm_catalog, "migration_factory"),
         })
 
+    # --- Pool VM technique (optionnel, réservation fixe pour DNS,
+    # scripts, etc. — sans lien avec les composants Carbonio) ---
+    if infra_in.get("pool_technique", False):
+        rules = sizing_rules["optional_components"]["pool_technique"]
+        nodes.append({
+            "id": "pool_technique",
+            "zone": rules["zone"],
+            "components": ["pool_technique"],
+            "sizing": _sizing_from_catalog(vm_catalog, "pool_technique"),
+        })
+
     # --- Infrastructure de qualification (optionnelle) ---
     qualification_nodes, qualification_mode = build_qualification_nodes(
         catalogs.get("qualification_catalog", {}), sizing_rules,

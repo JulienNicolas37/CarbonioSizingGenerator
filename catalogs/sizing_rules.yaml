@@ -270,3 +270,12 @@ optional_components:
     count: 1
     zone: LAN
     temporary: true   # à retirer de l'infra après la migration — signalé comme tel dans le PDF
+  pool_technique:
+    # Pertinent seulement si la destination est On Premise ou SaaS dédié
+    # (sans objet pour CarbonioCloud, plateforme Zextras gérée) — mêmes
+    # conditions que la question VMware. Réservation FIXE (pas de
+    # calcul), ajoutée à l'infrastructure de PRODUCTION uniquement (pas
+    # la qualification).
+    prompt: "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?"
+    default: false
+    zone: LAN
