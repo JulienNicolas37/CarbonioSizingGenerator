@@ -168,8 +168,16 @@ mailstore_scaling:
 
     # --- Backup (si activé) ---
     # 1,3 fois la taille cumulée des stockages primaire + secondaire
-    # effectivement utilisés pour ce mailstore.
+    # effectivement utilisés pour ce mailstore — ce ratio correspond à
+    # la rétention de référence (backup_tranche_days, 30 jours par
+    # défaut). Au-delà, chaque tranche supplémentaire complète de
+    # backup_tranche_days ajoute backup_tranche_pct % de l'USAGE (pas du
+    # volume de backup déjà calculé) au multiplicateur — une tranche
+    # entamée mais non complète est arrondie à la tranche supérieure
+    # (on ne sous-dimensionne jamais la rétention demandée).
     backup_multiplier: 1.3
+    backup_tranche_days: 30
+    backup_tranche_pct: 5
 
     # Disque "Backup metadata" (rapide) : valeur FIXE ajoutée par
     # mailstore dès que les backups sont activés, quelle que soit la

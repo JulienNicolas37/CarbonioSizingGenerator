@@ -105,10 +105,18 @@ def run_interactive(catalogs: dict) -> dict:
 
     backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
     backup_sur_s3 = False
-    if backups and stockage_objet:
-        backup_sur_s3 = questionary.confirm(
-            "Le backup sera-t-il également sur S3 ?", default=False
-        ).ask()
+    backup_retention_days = None
+    if backups:
+        if stockage_objet:
+            backup_sur_s3 = questionary.confirm(
+                "Le backup sera-t-il également sur S3 ?", default=False
+            ).ask()
+        # Habituellement par tranche de 30 jours : chaque tranche
+        # supplémentaire au-delà de la première ajoute 5 % de l'usage
+        # (primaire + secondaire) au volume de backup (voir sizing_rules.yaml).
+        backup_retention_days = int(questionary.text(
+            "Combien de jours de rétention pour les backups ?", default="30"
+        ).ask())
 
     print("\nServices à activer (email/calendrier/contacts sont toujours inclus) :")
     chat = questionary.confirm("Chat ?", default=False).ask()
@@ -299,6 +307,7 @@ def run_interactive(catalogs: dict) -> dict:
             "retention_days": retention_days,
             "backups": backups,
             "backup_sur_s3": backup_sur_s3,
+            "backup_retention_days": backup_retention_days,
             "vmware_virtualise": vmware_virtualise,
             "pool_technique": pool_technique,
             "qualification_active": qualification_active,

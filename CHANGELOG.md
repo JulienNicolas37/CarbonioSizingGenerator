@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.0 — Rétention des backups par tranche de 30 jours
+- **Nouvelle question** "Combien de jours de rétention pour les backups ?" (défaut 30), posée dès
+  que les backups sont activés.
+- Le multiplicateur de backup (1,3× par défaut, pour 30 jours de référence) est désormais ajusté par
+  tranche : chaque tranche complète de 30 jours au-delà de la première ajoute 5 % de l'USAGE réel
+  (primaire + secondaire, pas du volume de backup déjà calculé) au multiplicateur — une tranche
+  entamée mais non complète est arrondie à la tranche supérieure (jamais de sous-dimensionnement de
+  la rétention demandée).
+- Seuil de tranche (30 jours) et pourcentage (5 %) configurables dans `sizing_rules.yaml`
+  (`backup_tranche_days`, `backup_tranche_pct`).
+- Récapitulatif des besoins mis à jour pour afficher la rétention retenue (ex. "Backups : Oui (sur
+  S3), rétention de 90 jour(s)").
+- Vérifié : 30j → ×1,3 (inchangé) ; 60j → ×1,35 ; 90j → ×1,40 ; 45j (tranche entamée) → ×1,35 comme
+  60j. Non-régression confirmée sur les 2 exemples réels (champ absent → 30 jours par défaut,
+  valeurs inchangées).
+
 ## 0.20.0 — Pool VM technique
 - **Nouvelle question** "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", posée juste
   après la question VMware — mêmes conditions (On Premise ou SaaS dédié uniquement, sans objet pour

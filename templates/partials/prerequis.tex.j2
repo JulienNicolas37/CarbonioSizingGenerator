@@ -21,7 +21,7 @@ communiqués par le client~:
 \BLOCK{ if besoins.hsm_active }
   \item Module HSM (délestage vers un stockage secondaire \VAR{ besoins.secondaire_label })~: activé, rétention primaire de \VAR{ besoins.retention_days } jour(s)
 \BLOCK{ endif }
-  \item Backups~: \VAR{ "Oui" if besoins.backups else "Non" }\BLOCK{ if besoins.backups and besoins.backup_sur_s3 } (sur S3)\BLOCK{ endif }
+  \item Backups~: \VAR{ "Oui" if besoins.backups else "Non" }\BLOCK{ if besoins.backups and besoins.backup_sur_s3 } (sur S3)\BLOCK{ endif }\BLOCK{ if besoins.backups and besoins.backup_retention_days }, rétention de \VAR{ besoins.backup_retention_days } jour(s)\BLOCK{ endif }
 
   \item Services demandés~: \VAR{ besoins.services_display }
 \end{itemize}

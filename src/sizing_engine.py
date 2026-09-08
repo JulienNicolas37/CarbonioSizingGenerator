@@ -168,7 +168,8 @@ def _sizing_from_catalog(vm_catalog: dict, component_id: str) -> dict:
 
 def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_count: int,
                               volumetrie_to: float, hsm_active: bool,
-                              retention_days: Optional[int], backups: bool) -> dict:
+                              retention_days: Optional[int], backups: bool,
+                              backup_retention_days: Optional[int] = None) -> dict:
     """
     Dimensionnement disque d'un mailstore (identique pour tous les
     mailstores du client — volumétrie moyenne, pas de répartition
@@ -185,7 +186,11 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
         Stockage Objet — décidé à l'affichage, pas ici) ;
       - sinon : tout reste en primaire (= volumétrie moyenne) ;
       - si backups activés : 1,3x la taille cumulée primaire + secondaire
-        (sur la base de l'usage réel) ;
+        (sur la base de l'usage réel), pour la rétention de référence
+        (30 jours par défaut) — au-delà, chaque tranche supplémentaire
+        complète de 30 jours ajoute 5 % de CET USAGE (pas du volume de
+        backup déjà calculé) au multiplicateur, une tranche entamée mais
+        non complète étant arrondie à la tranche supérieure ;
       - une MARGE de capacité (headroom_pct, 30 % par défaut) est ensuite
         appliquée au primaire et au secondaire SEULEMENT (pas au backup —
         le multiplicateur 1,3x est déjà une marge en soi, cumuler les
@@ -212,8 +217,14 @@ def compute_mailstore_sizing(vm_catalog: dict, sizing_rules: dict, mailstore_cou
     else:
         primary_gb_usage = round(avg_gb)
 
+    tranche_days = rules.get("backup_tranche_days", 30)
+    tranche_pct = rules.get("backup_tranche_pct", 0)
+    effective_retention = backup_retention_days or tranche_days
+    extra_tranches = max(0, math.ceil((effective_retention - tranche_days) / tranche_days))
+    backup_multiplier_effective = rules["backup_multiplier"] + (tranche_pct / 100) * extra_tranches
+
     backup_gb_usage = (
-        round(rules["backup_multiplier"] * (primary_gb_usage + secondary_gb_usage))
+        round(backup_multiplier_effective * (primary_gb_usage + secondary_gb_usage))
         if backups else 0
     )
 
@@ -356,6 +367,7 @@ def build_nodes(client_config: dict, catalogs: dict,
     hsm_active = infra_in.get("hsm_active", False)
     retention_days = infra_in.get("retention_days")
     backups = infra_in.get("backups", False)
+    backup_retention_days = infra_in.get("backup_retention_days")
 
     nodes = []
     node_counters = {}
@@ -421,7 +433,7 @@ def build_nodes(client_config: dict, catalogs: dict,
     # --- Sizing des mailstores (nombre déjà arrêté ci-dessus) ---
     mailstore_sizing = compute_mailstore_sizing(
         vm_catalog, sizing_rules, mailstore_count, volumetrie_to,
-        hsm_active, retention_days, backups,
+        hsm_active, retention_days, backups, backup_retention_days,
     )
     for i in range(mailstore_count):
         nodes.append({

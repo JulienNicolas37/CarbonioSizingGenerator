@@ -294,6 +294,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "retention_days": infra_raw.get("retention_days"),
         "backups": infra_raw.get("backups", False),
         "backup_sur_s3": infra_raw.get("backup_sur_s3", False),
+        "backup_retention_days": infra_raw.get("backup_retention_days"),
     }
 
     # --- Confidentialité (chapitre 1) ---
