@@ -184,6 +184,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
 
     nodes, totals, all_components_seen = _process_nodes(client_config.get("nodes", []), component_labels)
     diagram_tikz_raw = _diagram_for(client_config.get("nodes", []), component_labels)
+    migration_factory_active = any(n["id"] == "migration_factory" for n in client_config.get("nodes", []))
 
     qualif_raw_nodes = client_config.get("qualification_nodes", [])
     qualification_active = bool(qualif_raw_nodes)
@@ -423,6 +424,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "auteur": auteur,
         "revisions": revisions,
         "nodes": nodes,
+        "migration_factory_active": migration_factory_active,
         "totals": totals,
         "diagram_tikz_raw": diagram_tikz_raw,   # LaTeX déjà généré : jamais échappé
         "besoins": besoins,

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.22.0 — Sous-chapitre "Précisions techniques"
+- **Nouvelle sous-section 6.1 "Précisions techniques"** dans le chapitre "Bilan des besoins",
+  juste après le tableau de synthèse — texte entièrement reformulé pour rester agréable à lire
+  plutôt qu'une liste de notes brutes.
+- Points fixes (toujours affichés) : type de disque (SSD/NVMe pour les disques rapides), système
+  d'exploitation à déployer (RHEL 9.5, Rocky Linux 9.5 ou Ubuntu 24.04, au choix du client), méthode
+  d'installation recommandée (VM avec disque OS seul + SSH uniquement dans un premier temps, ajout
+  des disques "Appli" sans paramétrage OS dans un second temps), réseau (FQDN résolvable via DNS),
+  formatage des disques applicatifs (XFS).
+- Point conditionnel : si une usine de migration est présente sur l'infrastructure, précision
+  qu'elle doit être installée avec Ubuntu 24.04 spécifiquement, indépendamment du choix retenu pour
+  le reste de l'infrastructure.
+- Nouveau flag `migration_factory_active` dans le contexte (`generate_pdf.py`), détecté directement
+  depuis la présence du nœud dans la config client.
+- Vérifié : le point conditionnel apparaît sur l'exemple Amboise (usine de migration présente) et
+  est bien absent sur la petite infra (pas d'usine de migration).
+
 ## 0.21.0 — Rétention des backups par tranche de 30 jours
 - **Nouvelle question** "Combien de jours de rétention pour les backups ?" (défaut 30), posée dès
   que les backups sont activés.

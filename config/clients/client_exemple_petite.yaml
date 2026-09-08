@@ -65,7 +65,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: services01
   zone: LAN
   components:
@@ -97,7 +97,7 @@ nodes:
   label: Application01 — Chat
   sizing:
     vcpu: 4
-    ram_gb: 4
+    ram_gb: 12
     disk_os_gb: 30
     disk_appli_gb: 20
 infra_resolved:

@@ -102,7 +102,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: proxy02
   zone: DMZ
   components:
@@ -111,7 +111,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_auth01
   zone: DMZ
   components:
@@ -120,7 +120,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_auth02
   zone: DMZ
   components:
@@ -129,7 +129,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_in01
   zone: DMZ
   components:
@@ -138,7 +138,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_in02
   zone: DMZ
   components:
@@ -147,7 +147,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_out01
   zone: DMZ
   components:
@@ -156,7 +156,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: mta_out02
   zone: DMZ
   components:
@@ -165,7 +165,7 @@ nodes:
     vcpu: 4
     ram_gb: 8
     disk_os_gb: 30
-    disk_appli_gb: 0
+    disk_appli_gb: 50
 - id: services01
   zone: LAN
   components:
@@ -269,7 +269,7 @@ nodes:
   label: Application01 — Chat
   sizing:
     vcpu: 4
-    ram_gb: 4
+    ram_gb: 12
     disk_os_gb: 30
     disk_appli_gb: 20
 - id: application02
@@ -280,7 +280,7 @@ nodes:
   label: Application02 — Files + Édition collaborative
   sizing:
     vcpu: 4
-    ram_gb: 4
+    ram_gb: 12
     disk_os_gb: 30
     disk_appli_gb: 20
 - id: visio
@@ -289,7 +289,7 @@ nodes:
   - videoconf
   sizing:
     vcpu: 4
-    ram_gb: 4
+    ram_gb: 12
     disk_os_gb: 30
     disk_appli_gb: 100
 - id: migration_factory

@@ -29,3 +29,39 @@ VMware gestion des snapshots & --- & --- & \VAR{ vmware_snapshot_gb } & --- & --
 \hline
 \end{longtable}
 }
+
+\section{Précisions techniques}
+Les points suivants complètent le dimensionnement présenté ci-dessus et
+doivent être pris en compte lors de la préparation de l'infrastructure.
+
+\begin{itemize}[nosep]
+  \item \textbf{Type de disque} --- Les disques identifiés comme
+    « disque rapide » dans le tableau ci-dessus doivent être de type
+    SSD ou NVMe.
+
+  \item \textbf{Système d'exploitation} --- Le système d'exploitation à
+    déployer sur l'ensemble des machines virtuelles est, au choix du
+    client~: RHEL 9.5, Rocky Linux 9.5 ou Ubuntu 24.04.
+
+  \item \textbf{Méthode d'installation recommandée} --- Nous
+    recommandons de procéder en deux temps~: créer dans un premier
+    temps la machine virtuelle avec uniquement son disque système, puis
+    installer le système d'exploitation en n'activant que le service
+    SSH. Les disques « Appli » sont ajoutés à la machine virtuelle dans
+    un second temps seulement, sans qu'aucun paramétrage ne soit
+    réalisé côté système d'exploitation~: Zextras Services s'en charge
+    lors du déploiement de la solution.
+
+  \item \textbf{Réseau} --- Chaque machine virtuelle doit disposer d'un
+    nom de domaine pleinement qualifié (FQDN) résolvable via le DNS du
+    client.
+
+  \item \textbf{Formatage des disques applicatifs} --- Les disques
+    « Appli » doivent être formatés en XFS.
+\BLOCK{ if migration_factory_active }
+
+  \item \textbf{Usine de migration} --- Le nœud dédié à l'usine de
+    migration doit être installé avec Ubuntu 24.04, indépendamment du
+    choix retenu pour le reste de l'infrastructure.
+\BLOCK{ endif }
+\end{itemize}
