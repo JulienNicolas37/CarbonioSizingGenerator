@@ -484,6 +484,25 @@ def build_nodes(client_config: dict, catalogs: dict,
             "sizing": _sizing_from_catalog(vm_catalog, "pool_technique"),
         })
 
+    # --- Pool PMG (optionnel, passerelles AS/AV Proxmox Mail Gateway) ---
+    # En coupure en amont des MTA_IN dans le flux SMTP entrant (filtrage
+    # anti-spam/anti-virus avant remise aux MTA_IN). Le nombre de nœuds
+    # PMG suit dynamiquement le nombre de nœuds portant le rôle mta_in
+    # déjà construits ci-dessus, quel que soit le palier HA — y compris
+    # en mode minimal, où mta_in est fusionné avec les autres rôles DMZ
+    # sur un seul nœud (le pool PMG compte alors 1 seul nœud aussi).
+    if infra_in.get("pmg_active", False):
+        rules = sizing_rules["optional_components"]["pmg"]
+        pmg_count = sum(1 for n in nodes if "mta_in" in n.get("components", []))
+        for i in range(pmg_count):
+            node_id = f"pmg{i + 1:02d}" if pmg_count > 1 else "pmg"
+            nodes.append({
+                "id": node_id,
+                "zone": rules["zone"],
+                "components": ["pmg"],
+                "sizing": _sizing_from_catalog(vm_catalog, "pmg"),
+            })
+
     # --- Infrastructure de qualification (optionnelle) ---
     qualification_nodes, qualification_mode = build_qualification_nodes(
         catalogs.get("qualification_catalog", {}), sizing_rules,

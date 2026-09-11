@@ -171,12 +171,17 @@ def run_interactive(catalogs: dict) -> dict:
     # objet pour CarbonioCloud, qui est une plateforme Zextras gérée.
     vmware_virtualise = False
     pool_technique = False
+    pmg_active = False
     if destination_platform in ("onpremise", "saasdedie"):
         vmware_virtualise = questionary.confirm(
             "L'environnement de virtualisation est-il VMware ?", default=False
         ).ask()
         pool_technique = questionary.confirm(
             "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", default=False
+        ).ask()
+        pmg_active = questionary.confirm(
+            "Faut-il ajouter un pool de passerelles AS/AV Proxmox Mail Gateway (PMG) ?",
+            default=False
         ).ask()
 
     mco_contract = questionary.confirm(
@@ -310,6 +315,7 @@ def run_interactive(catalogs: dict) -> dict:
             "backup_retention_days": backup_retention_days,
             "vmware_virtualise": vmware_virtualise,
             "pool_technique": pool_technique,
+            "pmg_active": pmg_active,
             "qualification_active": qualification_active,
             "qualification_ha_mirror": qualification_ha_mirror,
         },
