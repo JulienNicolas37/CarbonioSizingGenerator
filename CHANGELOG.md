@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.24.0 — Ordre d'affichage des nœuds DMZ
+- **Tableau de dimensionnement et schéma d'architecture réordonnés** : la zone DMZ s'affiche
+  désormais toujours avant la zone LAN, et au sein de la DMZ, le pool PMG apparaît en premier
+  (cohérent avec sa position en coupure en amont des MTA_IN dans le flux SMTP) et le serveur de
+  visioconférence en dernier — le reste (proxy/mta_auth/mta_in/mta_out) garde son ordre habituel.
+- Nouvelle fonction `_reorder_nodes_for_display()` (`generate_pdf.py`), appliquée uniquement à
+  l'affichage (tableau + schéma) — ne modifie pas l'ordre stocké dans le fichier de config client.
+- Vérifié : PMG en tête, visio en fin de zone DMZ sur l'exemple Amboise avec PMG activé (tableau ET
+  schéma cohérents entre eux) ; non-régression confirmée sans PMG (ordre proxy→mta_auth→mta_in→
+  mta_out→visio inchangé) et sur les totaux des 2 exemples réels.
+
 ## 0.23.1 — Correctif : entrées catalogue PMG manquantes
 - Le commit `fb33d68` (p0.23.0) n'avait committé que `src/generate_sizing.py` et
   `src/sizing_engine.py` — les 3 entrées de catalogue nécessaires (`catalogs/vm_catalog.yaml`,

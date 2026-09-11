@@ -95,6 +95,28 @@ def value_or_placeholder(value, label: str) -> str:
     return escape_latex(value)
 
 
+def _reorder_nodes_for_display(raw_nodes: list) -> list:
+    """Réordonne les nœuds pour l'affichage (tableau de dimensionnement +
+    schéma d'architecture) : zone DMZ avant zone LAN, et au sein de la
+    DMZ, le pool PMG en premier (en coupure en amont des MTA_IN dans le
+    flux SMTP) puis le serveur de visioconférence en dernier — le reste
+    garde son ordre d'origine (tri stable). Ne modifie PAS l'ordre
+    stocké dans la config client, uniquement la présentation."""
+    def dmz_role_rank(n):
+        comps = n.get("components", [])
+        if "pmg" in comps:
+            return 0
+        if "videoconf" in comps:
+            return 2
+        return 1
+
+    def sort_key(n):
+        zone_rank = 0 if n.get("zone") == "DMZ" else 1
+        return (zone_rank, dmz_role_rank(n) if zone_rank == 0 else 0)
+
+    return sorted(raw_nodes, key=sort_key)
+
+
 def _process_nodes(raw_nodes: list, component_labels: dict) -> tuple:
     """Transforme une liste de nœuds bruts (config client) en (nodes
     affichables, totals, composants vus) — factorisé pour être réutilisé
@@ -182,8 +204,9 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         for rev in raw_revisions
     ]
 
-    nodes, totals, all_components_seen = _process_nodes(client_config.get("nodes", []), component_labels)
-    diagram_tikz_raw = _diagram_for(client_config.get("nodes", []), component_labels)
+    nodes_display_order = _reorder_nodes_for_display(client_config.get("nodes", []))
+    nodes, totals, all_components_seen = _process_nodes(nodes_display_order, component_labels)
+    diagram_tikz_raw = _diagram_for(nodes_display_order, component_labels)
     migration_factory_active = any(n["id"] == "migration_factory" for n in client_config.get("nodes", []))
 
     qualif_raw_nodes = client_config.get("qualification_nodes", [])
