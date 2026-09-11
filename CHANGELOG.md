@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.1 — Correctif : entrées catalogue PMG manquantes
+- Le commit `fb33d68` (p0.23.0) n'avait committé que `src/generate_sizing.py` et
+  `src/sizing_engine.py` — les 3 entrées de catalogue nécessaires (`catalogs/vm_catalog.yaml`,
+  `catalogs/component_labels.yaml`, `catalogs/sizing_rules.yaml`) manquaient entièrement, provoquant
+  un `KeyError: 'pmg'` dès que la question PMG était répondue "Oui". Corrigé ici.
+- `config/clients/client_exemple_reference.yaml` mis à jour en conséquence (champ `pmg_active`
+  documenté, lui aussi resté absent du commit précédent).
+
 ## 0.22.0 — Sous-chapitre "Précisions techniques"
 - **Nouvelle sous-section 6.1 "Précisions techniques"** dans le chapitre "Bilan des besoins",
   juste après le tableau de synthèse — texte entièrement reformulé pour rester agréable à lire

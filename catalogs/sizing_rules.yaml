@@ -287,3 +287,15 @@ optional_components:
     prompt: "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?"
     default: false
     zone: LAN
+  pmg:
+    # Pertinent seulement si la destination est On Premise ou SaaS dédié
+    # (mêmes conditions que VMware/pool_technique). PAS de "count" fixe
+    # ici : le nombre de nœuds PMG suit dynamiquement le nombre de
+    # nœuds portant le rôle mta_in déjà provisionnés (quel que soit le
+    # palier HA, y compris en mode minimal où mta_in est fusionné avec
+    # les autres rôles sur un seul nœud) — voir sizing_engine.py. Les
+    # flux SMTP entrants passent par le pool PMG avant d'atteindre les
+    # MTA_IN (filtrage anti-spam/anti-virus en coupure).
+    prompt: "Faut-il ajouter un pool de passerelles AS/AV Proxmox Mail Gateway (PMG) ?"
+    default: false
+    zone: DMZ

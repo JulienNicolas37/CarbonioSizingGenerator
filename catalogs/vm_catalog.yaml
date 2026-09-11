@@ -66,6 +66,16 @@ mta_out:
   disk_os_gb: 30
   disk_appli_gb: 50
 
+pmg:
+  # Composant optionnel — activé seulement si la question "pool de
+  # passerelles PMG ?" est répondue Oui (voir sizing_rules.yaml). Même
+  # gabarit que les autres nœuds DMZ (proxy/mta_*).
+  zone: DMZ
+  vcpu: 4
+  ram_gb: 8
+  disk_os_gb: 30
+  disk_appli_gb: 50
+
 files:
   zone: LAN
   vcpu: 4

@@ -166,6 +166,10 @@ infra:
   pool_technique: false             # réservation d'un nœud "Pool VM technique" (DNS, scripts, etc.)
                                     # sur l'infrastructure de PRODUCTION uniquement — taille fixe
                                     # (6 vCPU, 16 Go RAM, 100 Go disque rapide), pas de calcul
+  pmg_active: false                 # pool de passerelles AS/AV Proxmox Mail Gateway (PMG), en
+                                    # coupure en amont des MTA_IN dans le flux SMTP entrant — le
+                                    # nombre de nœuds suit dynamiquement le nombre de nœuds MTA_IN
+                                    # déjà provisionnés (même gabarit que les autres nœuds DMZ)
 
   # --- Qualification ---
   qualification_active: false      # infrastructure de qualification prévue pour ce projet
