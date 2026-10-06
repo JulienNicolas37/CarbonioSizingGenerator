@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.26.0 — Retrait des tâches de construction de plateforme du Gantt pour Carbonio Cloud
+- **Planning de migration** : les 5 tâches de construction d'infrastructure ("Fourniture des
+  pré-requis de construction de la plateforme", "Mise en place des pré-requis de plateforme
+  (VM, Flux réseau, etc.)", "Installation de la plateforme de messagerie Carbonio",
+  "Validation du bon fonctionnement de la plateforme", jalon "Plateforme fonctionnelle") sont
+  retirées du Gantt quand `destination_platform == "carboniocloud"` (plateforme mutualisée
+  déjà prête, rien à construire côté client). Les tâches en aval ("Vérification mise en place
+  des flux spécifiques migration", "Fourniture du fichier de provisionning") démarrent alors
+  directement après le Kickoff.
+- Nouveau champ `skip_if_carboniocloud: true` sur ces 5 tâches dans
+  `catalogs/migration_gantt.yaml`, et nouvelle fonction générique
+  `gantt_engine.filter_tasks_for_destination()` (retrait + rebranchement automatique des
+  dépendances orphelines sur le plus proche ancêtre restant), appliquée dans
+  `generate_pdf.py` (planning affiché) et `generate_sizing.py` (avertissement de
+  dépassement de planning).
+- Aucun effet pour On Premise et SaaS dédié (fonction no-op hors CarbonioCloud).
+- Vérifié : non-régression sur `univ_amboise` (onpremise, Gantt inchangé) ; nouveau cas testé
+  avec une config CarbonioCloud (tâches absentes, rebranchement `t1 → t7`/`t1 → t8` confirmé
+  dans le `.tex` généré, compilation PDF réussie).
+
 ## 0.25.0 — Flux de questions allégé pour Carbonio Cloud
 - **La question "plateforme de destination" est déplacée juste après la volumétrie en To**
   (avant Stockage Objet), car elle détermine si les questions de dimensionnement

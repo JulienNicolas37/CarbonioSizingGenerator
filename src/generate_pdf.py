@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config_loader import load_client_config, load_yaml, CATALOGS_DIR, slugify, get_client
 from latex_utils import build_env, escape_latex
 from tikz_builder import build_tikz
-from gantt_engine import WorkCalendar, compute_schedule, parse_ics_dates, parse_date_fr, format_date_fr, compute_resource_load
+from gantt_engine import WorkCalendar, compute_schedule, parse_ics_dates, parse_date_fr, format_date_fr, compute_resource_load, filter_tasks_for_destination
 from gantt_builder import build_pgfgantt, build_charge_table
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -412,7 +412,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
     gantt_cfg = client_config.get("gantt", {})
     gantt_ctx = {"active": False}
     if prestation["migration_included"] and gantt_cfg.get("date_debut_estimee") and gantt_cfg.get("nombre_bascules"):
-        raw_tasks = catalogs["migration_gantt"]
+        raw_tasks = filter_tasks_for_destination(catalogs["migration_gantt"], destination_platform_raw)
         ics_path = gantt_cfg.get("jours_feries_ics")
         if ics_path and not Path(ics_path).is_absolute():
             ics_path = str(PROJECT_ROOT / ics_path)

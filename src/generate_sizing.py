@@ -442,8 +442,10 @@ def main():
     prestation = client_config.get("prestation", {})
     gantt_cfg = client_config.get("gantt", {})
     if prestation.get("migration_included") and gantt_cfg.get("date_debut_estimee") and gantt_cfg.get("date_fin_estimee"):
-        from gantt_engine import WorkCalendar, compute_schedule, parse_ics_dates, parse_date_fr, format_date_fr
-        raw_tasks = load_yaml(CATALOGS_DIR / "migration_gantt.yaml")
+        from gantt_engine import WorkCalendar, compute_schedule, parse_ics_dates, parse_date_fr, format_date_fr, filter_tasks_for_destination
+        raw_tasks = filter_tasks_for_destination(
+            load_yaml(CATALOGS_DIR / "migration_gantt.yaml"), prestation.get("destination_platform")
+        )
         holidays = parse_ics_dates(str(Path(gantt_cfg["jours_feries_ics"])))
         cal = WorkCalendar(gantt_cfg["jours_travailles"], holidays)
         date_debut = parse_date_fr(gantt_cfg["date_debut_estimee"])

@@ -103,6 +103,40 @@ class WorkCalendar:
 
 
 # ---------------------------------------------------------------------
+# Filtrage par plateforme de destination
+# ---------------------------------------------------------------------
+
+def filter_tasks_for_destination(raw_tasks: list, destination_platform: str) -> list:
+    """Retire les tâches marquées skip_if_carboniocloud quand la
+    destination est CarbonioCloud (rien à construire sur une plateforme
+    mutualisée déjà prête), et rebranche toute tâche restante qui
+    dépendait d'une tâche retirée sur le plus proche ancêtre encore
+    présent (en remontant la chaîne demarre_apres des tâches retirées).
+    No-op pour onpremise/saasdedie."""
+    if destination_platform != "carboniocloud":
+        return raw_tasks
+
+    removed = {str(t["id"]): t for t in raw_tasks if t.get("skip_if_carboniocloud")}
+    kept = [t for t in raw_tasks if str(t["id"]) not in removed]
+
+    def resolve_ancestor(ref):
+        while ref is not None and ref in removed:
+            ref = removed[ref].get("demarre_apres")
+            ref = str(ref) if ref is not None else None
+        return ref
+
+    result = []
+    for t in kept:
+        nt = dict(t)
+        da = nt.get("demarre_apres")
+        da = str(da) if da is not None else None
+        if da in removed:
+            nt["demarre_apres"] = resolve_ancestor(da)
+        result.append(nt)
+    return result
+
+
+# ---------------------------------------------------------------------
 # Expansion du groupe répétable (#1 / #last)
 # ---------------------------------------------------------------------
 
