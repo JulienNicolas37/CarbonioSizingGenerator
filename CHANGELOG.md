@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.25.0 — Flux de questions allégé pour Carbonio Cloud
+- **La question "plateforme de destination" est déplacée juste après la volumétrie en To**
+  (avant Stockage Objet), car elle détermine si les questions de dimensionnement
+  d'infrastructure qui suivent ont un sens.
+- **Si "CarbonioCloud" est choisi**, plus aucune question d'infrastructure n'est posée :
+  Stockage Objet, HSM, rétention, backups, usine de migration, accès IMAP direct,
+  infrastructure de qualification, VMware/pool technique/PMG (déjà conditionnés), palier
+  de charge HA, nombre de mailstores, contrat de MCO. Les 5 services (Chat, Tâches, Files,
+  Édition collaborative, Visioconférence) sont activés automatiquement. La question
+  "migration incluse" reste systématiquement posée.
+- `nodes`, `qualification_nodes` et `infra_resolved` restent vides pour un projet
+  CarbonioCloud (`generate_sizing.py` ne calcule plus de dimensionnement).
+- Document généré : plus de chapitre "Infrastructure de qualification" ni "Bilan des
+  besoins", plus de sections "Dimensionnement de l'infrastructure" / "Schéma
+  d'architecture" (chapitre Prérequis), plus de ligne MCO/Stockage Objet/Backups dans le
+  récapitulatif des besoins — conformément au principe de ne pas faire apparaître ce qui
+  n'est pas inclus dans l'offre. Le chapitre "Méthodologie de pilotage du projet" reste
+  inchangé (déjà indépendant du dimensionnement).
+- Pour "On Premise" et "SaaS dédié" : flux de questions et document inchangés.
+- `config/clients/client_exemple_reference.yaml` mis à jour (comportement `carboniocloud`
+  documenté sur `destination_platform`, `mco_contract` et `services`).
+
 ## 0.24.0 — Ordre d'affichage des nœuds DMZ
 - **Tableau de dimensionnement et schéma d'architecture réordonnés** : la zone DMZ s'affiche
   désormais toujours avant la zone LAN, et au sein de la DMZ, le pool PMG apparaît en premier

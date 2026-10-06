@@ -86,77 +86,12 @@ def run_interactive(catalogs: dict) -> dict:
     domaines = int(questionary.text("Nombre de domaines :", default="1").ask())
     comptes = int(questionary.text("Nombre de comptes :").ask())
     volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
-    stockage_objet = questionary.confirm("Stockage Objet activé ?", default=False).ask()
 
-    # Le module HSM (délestage des données froides vers un stockage
-    # secondaire) est toujours posé juste après la question du S3, même
-    # sans Stockage Objet : le délestage peut cibler du S3 (si Stockage
-    # Objet actif) ou simplement un disque lent local (sinon). La
-    # suggestion de départ reprend la réponse donnée au S3, sans l'imposer.
-    hsm_active = questionary.confirm(
-        "Activer le module HSM (délestage des données froides vers un stockage secondaire) ?",
-        default=stockage_objet
-    ).ask()
-    retention_days = None
-    if hsm_active:
-        retention_days = int(questionary.text(
-            "Rétention en jours à prévoir sur le stockage primaire :", default="7"
-        ).ask())
-
-    backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
-    backup_sur_s3 = False
-    backup_retention_days = None
-    if backups:
-        if stockage_objet:
-            backup_sur_s3 = questionary.confirm(
-                "Le backup sera-t-il également sur S3 ?", default=False
-            ).ask()
-        # Habituellement par tranche de 30 jours : chaque tranche
-        # supplémentaire au-delà de la première ajoute 5 % de l'usage
-        # (primaire + secondaire) au volume de backup (voir sizing_rules.yaml).
-        backup_retention_days = int(questionary.text(
-            "Combien de jours de rétention pour les backups ?", default="30"
-        ).ask())
-
-    print("\nServices à activer (email/calendrier/contacts sont toujours inclus) :")
-    chat = questionary.confirm("Chat ?", default=False).ask()
-    tache = questionary.confirm("Tâches ?", default=False).ask()
-    files = questionary.confirm("Files ?", default=False).ask()
-    edition_collaborative = questionary.confirm("Édition collaborative ?", default=False).ask()
-    visio = questionary.confirm("Visioconférence ?", default=False).ask()
-
-    migration_factory = questionary.confirm(
-        "Y a-t-il une usine de migration sur l'infrastructure client ?", default=False
-    ).ask()
-
-    imap = True
-    if needs_imap_question(comptes, catalogs["sizing_rules"]):
-        imap = questionary.confirm(
-            "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
-        ).ask()
-
-    # --- Infrastructure de qualification (optionnelle) ---
-    qualification_active = questionary.confirm(
-        "Faut-il prévoir une infrastructure de qualification ?", default=False
-    ).ask()
-    qualification_ha_mirror = False
-    if qualification_active:
-        # Aperçu du palier HA suggéré à ce stade (le choix définitif n'est
-        # confirmé qu'à la rétrospective) : la question de mirroring HA
-        # n'a de sens que si la production a effectivement de la HA.
-        ha_preview = suggest_ha_tier(comptes, imap, catalogs["sizing_rules"])
-        if ha_preview.level > 0:
-            qualification_ha_mirror = questionary.confirm(
-                "Faut-il prévoir les mêmes fonctions HA (proxy, MTA, etc.) "
-                "que la production sur la qualification ?", default=False
-            ).ask()
-
-    # --- Prestation commandée (migration, plateforme de destination, MCO) ---
-    # Toujours posées (même sans migration), car "plateforme de destination"
-    # a vocation à être réutilisée au-delà du seul chapitre migration.
-    migration_included = questionary.confirm(
-        "La migration est-elle incluse dans la prestation ?", default=False
-    ).ask()
+    # La plateforme de destination est demandée ici, juste après la
+    # volumétrie, car elle détermine si les questions de dimensionnement
+    # d'infrastructure qui suivent ont un sens : pour CarbonioCloud, le
+    # client ne fournit ni ne maintient d'infrastructure (pas de pré-requis
+    # matériel), donc tout ce bloc est sauté.
     destination_platform_choices = [
         questionary.Choice(title="CarbonioCloud", value="carboniocloud"),
         questionary.Choice(title="On Premise", value="onpremise"),
@@ -164,6 +99,96 @@ def run_interactive(catalogs: dict) -> dict:
     ]
     destination_platform = questionary.select(
         "Quelle est la plateforme de destination ?", choices=destination_platform_choices
+    ).ask()
+    is_carboniocloud = destination_platform == "carboniocloud"
+
+    if is_carboniocloud:
+        stockage_objet = False
+        hsm_active = False
+        retention_days = None
+        backups = False
+        backup_sur_s3 = False
+        backup_retention_days = None
+    else:
+        stockage_objet = questionary.confirm("Stockage Objet activé ?", default=False).ask()
+
+        # Le module HSM (délestage des données froides vers un stockage
+        # secondaire) est toujours posé juste après la question du S3, même
+        # sans Stockage Objet : le délestage peut cibler du S3 (si Stockage
+        # Objet actif) ou simplement un disque lent local (sinon). La
+        # suggestion de départ reprend la réponse donnée au S3, sans l'imposer.
+        hsm_active = questionary.confirm(
+            "Activer le module HSM (délestage des données froides vers un stockage secondaire) ?",
+            default=stockage_objet
+        ).ask()
+        retention_days = None
+        if hsm_active:
+            retention_days = int(questionary.text(
+                "Rétention en jours à prévoir sur le stockage primaire :", default="7"
+            ).ask())
+
+        backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
+        backup_sur_s3 = False
+        backup_retention_days = None
+        if backups:
+            if stockage_objet:
+                backup_sur_s3 = questionary.confirm(
+                    "Le backup sera-t-il également sur S3 ?", default=False
+                ).ask()
+            # Habituellement par tranche de 30 jours : chaque tranche
+            # supplémentaire au-delà de la première ajoute 5 % de l'usage
+            # (primaire + secondaire) au volume de backup (voir sizing_rules.yaml).
+            backup_retention_days = int(questionary.text(
+                "Combien de jours de rétention pour les backups ?", default="30"
+            ).ask())
+
+    if is_carboniocloud:
+        # L'offre CarbonioCloud inclut toutes les fonctionnalités par défaut.
+        chat = tache = files = edition_collaborative = visio = True
+    else:
+        print("\nServices à activer (email/calendrier/contacts sont toujours inclus) :")
+        chat = questionary.confirm("Chat ?", default=False).ask()
+        tache = questionary.confirm("Tâches ?", default=False).ask()
+        files = questionary.confirm("Files ?", default=False).ask()
+        edition_collaborative = questionary.confirm("Édition collaborative ?", default=False).ask()
+        visio = questionary.confirm("Visioconférence ?", default=False).ask()
+
+    if is_carboniocloud:
+        migration_factory = False
+    else:
+        migration_factory = questionary.confirm(
+            "Y a-t-il une usine de migration sur l'infrastructure client ?", default=False
+        ).ask()
+
+    imap = True
+    if not is_carboniocloud and needs_imap_question(comptes, catalogs["sizing_rules"]):
+        imap = questionary.confirm(
+            "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
+        ).ask()
+
+    # --- Infrastructure de qualification (optionnelle, sans objet en CarbonioCloud) ---
+    qualification_active = False
+    qualification_ha_mirror = False
+    if not is_carboniocloud:
+        qualification_active = questionary.confirm(
+            "Faut-il prévoir une infrastructure de qualification ?", default=False
+        ).ask()
+        if qualification_active:
+            # Aperçu du palier HA suggéré à ce stade (le choix définitif n'est
+            # confirmé qu'à la rétrospective) : la question de mirroring HA
+            # n'a de sens que si la production a effectivement de la HA.
+            ha_preview = suggest_ha_tier(comptes, imap, catalogs["sizing_rules"])
+            if ha_preview.level > 0:
+                qualification_ha_mirror = questionary.confirm(
+                    "Faut-il prévoir les mêmes fonctions HA (proxy, MTA, etc.) "
+                    "que la production sur la qualification ?", default=False
+                ).ask()
+
+    # --- Prestation commandée (migration, MCO) ---
+    # Toujours posée (même sans migration) : couvre aussi bien onpremise,
+    # saasdedie que carboniocloud.
+    migration_included = questionary.confirm(
+        "La migration est-elle incluse dans la prestation ?", default=False
     ).ask()
 
     # Pertinent seulement si le client (On Premise) ou l'hébergeur (SaaS
@@ -184,9 +209,14 @@ def run_interactive(catalogs: dict) -> dict:
             default=False
         ).ask()
 
-    mco_contract = questionary.confirm(
-        "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
-    ).ask()
+    if is_carboniocloud:
+        # Pas de MCO vu que c'est du cloud : la maintenance en condition
+        # opérationnelle est intégralement à la charge de Zextras.
+        mco_contract = False
+    else:
+        mco_contract = questionary.confirm(
+            "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
+        ).ask()
 
     # --- Planning de migration (Gantt) — uniquement si migration incluse ---
     nombre_bascules = None
@@ -370,26 +400,33 @@ def main():
         client_config = run_interactive(catalogs)
         output_path = str(CLIENTS_DIR / f"{slugify(get_client(client_config)['name'])}.yaml")
 
-    ha_level_override, mailstore_count_override = resolve_overrides(
-        client_config, catalogs, args.non_interactive
-    )
+    if client_config.get("prestation", {}).get("destination_platform") == "carboniocloud":
+        # CarbonioCloud : pas d'infrastructure à dimensionner, donc pas de
+        # palier HA ni de nombre de mailstores à calculer.
+        client_config["nodes"] = []
+        client_config["qualification_nodes"] = []
+        client_config["infra_resolved"] = {}
+    else:
+        ha_level_override, mailstore_count_override = resolve_overrides(
+            client_config, catalogs, args.non_interactive
+        )
 
-    result = build_nodes(
-        client_config, catalogs,
-        ha_level_override=ha_level_override,
-        mailstore_count_override=mailstore_count_override,
-    )
+        result = build_nodes(
+            client_config, catalogs,
+            ha_level_override=ha_level_override,
+            mailstore_count_override=mailstore_count_override,
+        )
 
-    if not args.non_interactive:
-        print_review(client_config, result)
+        if not args.non_interactive:
+            print_review(client_config, result)
 
-    client_config["nodes"] = result["nodes"]
-    client_config["qualification_nodes"] = result["qualification_nodes"]
-    client_config["infra_resolved"] = result["infra_resolved"]
-    # Fige les choix retenus, pour qu'une relecture ultérieure du fichier
-    # (--client) sans repasser par la rétrospective reproduise le même résultat.
-    client_config["infra"]["ha_tier"] = result["infra_resolved"]["ha_tier"]
-    client_config["infra"]["mailstore_count"] = result["infra_resolved"]["mailstore_count"]
+        client_config["nodes"] = result["nodes"]
+        client_config["qualification_nodes"] = result["qualification_nodes"]
+        client_config["infra_resolved"] = result["infra_resolved"]
+        # Fige les choix retenus, pour qu'une relecture ultérieure du fichier
+        # (--client) sans repasser par la rétrospective reproduise le même résultat.
+        client_config["infra"]["ha_tier"] = result["infra_resolved"]["ha_tier"]
+        client_config["infra"]["mailstore_count"] = result["infra_resolved"]["mailstore_count"]
 
     # "revisions" toujours en première clé du fichier (mise à jour la plus
     # fréquente = doit être la plus facile à retrouver), quel que soit

@@ -88,9 +88,21 @@ prestation:
   destination_platform: "onpremise"   # "onpremise" | "carboniocloud" | "saasdedie"
                                        # pilote le contenu conditionnel du chapitre migration
                                        # (balises <onpremise>/<carboniocloud>/<saasdedie> du texte source)
+                                       # "carboniocloud" : pas d'infrastructure cliente à dimensionner —
+                                       # generate_sizing.py ne pose alors AUCUNE des questions d'infra
+                                       # (stockage Objet, HSM, backups, qualification, VMware/pool
+                                       # technique/PMG, MCO, palier HA, nombre de mailstores, usine de
+                                       # migration) et active automatiquement les 5 services (chat,
+                                       # tâche, files, edition_collaborative, visio). nodes,
+                                       # qualification_nodes et infra_resolved restent vides ([]/{}).
+                                       # Le document généré n'affiche alors ni le chapitre "Infrastructure
+                                       # de qualification", ni "Bilan des besoins", ni les sections
+                                       # "Dimensionnement"/"Schéma d'architecture" du chapitre Prérequis.
   mco_contract: false                  # contrat de MCO à la suite de la migration — peut à lui seul
                                         # déclencher le chapitre "Méthodologie de pilotage du projet"
                                         # (avec migration_included et destination_platform != onpremise)
+                                        # Toujours false et jamais posé en interactif si
+                                        # destination_platform="carboniocloud" (MCO assuré par Zextras).
 
 # Section "gantt" : présente uniquement si migration_included=true au
 # moment de la génération. Son contenu par défaut vient de
@@ -125,6 +137,8 @@ gantt:
 
 services:
   # Toujours inclus par défaut sans question : messagerie, agenda, contacts.
+  # Si prestation.destination_platform="carboniocloud" : les 5 champs ci-dessous
+  # sont fixés à true automatiquement, sans question (offre Cloud standard).
   chat: false
   tache: false
   files: false

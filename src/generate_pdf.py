@@ -482,7 +482,8 @@ def render_document(ctx: dict) -> str:
     carbonio_solution = (TEMPLATES_DIR / "carbonio_solution.tex").read_text(encoding="utf-8")  # statique
     prerequis = env.get_template("prerequis.tex.j2").render(**ctx)
     architecture = (env.get_template("architecture.tex.j2").render(**ctx)
-                    if ctx["document_scope"]["schemas_architecture"] else "")
+                    if ctx["document_scope"]["schemas_architecture"]
+                    and not ctx["migration"]["is_carboniocloud"] else "")
     qualification = (env.get_template("qualification.tex.j2").render(**ctx)
                       if ctx["qualification"]["active"] else "")
     migration_methodology = (env.get_template("migration_methodology.tex.j2").render(**ctx)
@@ -491,7 +492,8 @@ def render_document(ctx: dict) -> str:
                               if ctx["pilotage_active"] and ctx["document_scope"]["methodologie_projet"] else "")
     gantt_migration = (env.get_template("gantt_migration.tex.j2").render(**ctx)
                         if ctx["gantt"]["active"] and ctx["document_scope"]["planning_migration"] else "")
-    bilan_ressources = env.get_template("bilan_ressources.tex.j2").render(**ctx)
+    bilan_ressources = (env.get_template("bilan_ressources.tex.j2").render(**ctx)
+                         if not ctx["migration"]["is_carboniocloud"] else "")
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
     # du chapitre 1 : rien sur la page de garde, l'historique des révisions

@@ -6,7 +6,9 @@ Le présent projet couvre les prestations suivantes~:
   \item Migration incluse dans la prestation~: \VAR{ "Oui" if prestation.migration_included else "Non" }
 \BLOCK{ if prestation.migration_included }
   \item Plateforme de destination~: \VAR{ prestation.destination_platform_display }
+\BLOCK{ if not migration.is_carboniocloud }
   \item Contrat de MCO à la suite de la migration~: \VAR{ "Oui" if prestation.mco_contract else "Non" }
+\BLOCK{ endif }
 \BLOCK{ endif }
 \end{itemize}
 
@@ -17,11 +19,13 @@ communiqués par le client~:
   \item Nombre de domaines de messagerie~: \VAR{ besoins.domaines }
   \item Nombre de comptes~: \VAR{ besoins.comptes }
   \item Volumétrie totale de données~: \VAR{ besoins.volumetrie_to } To
+\BLOCK{ if not migration.is_carboniocloud }
   \item Stockage Objet~: \VAR{ besoins.stockage_objet }
 \BLOCK{ if besoins.hsm_active }
   \item Module HSM (délestage vers un stockage secondaire \VAR{ besoins.secondaire_label })~: activé, rétention primaire de \VAR{ besoins.retention_days } jour(s)
 \BLOCK{ endif }
   \item Backups~: \VAR{ "Oui" if besoins.backups else "Non" }\BLOCK{ if besoins.backups and besoins.backup_sur_s3 } (sur S3)\BLOCK{ endif }\BLOCK{ if besoins.backups and besoins.backup_retention_days }, rétention de \VAR{ besoins.backup_retention_days } jour(s)\BLOCK{ endif }
+\BLOCK{ endif }
 
   \item Services demandés~: \VAR{ besoins.services_display }
 \end{itemize}
@@ -35,6 +39,7 @@ retenus pour ce client~:
 \BLOCK{ endfor }
 \end{itemize}
 
+\BLOCK{ if not migration.is_carboniocloud }
 \clearpage
 \begin{landscape}
 \section{Dimensionnement de l'infrastructure}
@@ -60,3 +65,4 @@ déploiement, réparties entre la zone publique (DMZ) et la zone privée
 \end{longtable}
 }
 \end{landscape}
+\BLOCK{ endif }
