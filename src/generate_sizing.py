@@ -89,11 +89,12 @@ def run_interactive(catalogs: dict) -> dict:
 
     # La plateforme de destination est demandée ici, juste après la
     # volumétrie, car elle détermine si les questions de dimensionnement
-    # d'infrastructure qui suivent ont un sens : pour CarbonioCloud, le
-    # client ne fournit ni ne maintient d'infrastructure (pas de pré-requis
-    # matériel), donc tout ce bloc est sauté.
+    # d'infrastructure qui suivent ont un sens : pour CarbonioCloud ou une
+    # plateforme On Premise déjà existante, il n'y a pas d'infrastructure
+    # à dimensionner (pas de pré-requis matériel), donc tout ce bloc est sauté.
     destination_platform_choices = [
         questionary.Choice(title="CarbonioCloud", value="carboniocloud"),
+        questionary.Choice(title="Plateforme On Premise déjà existante", value="onpremise_existant"),
         questionary.Choice(title="On Premise", value="onpremise"),
         questionary.Choice(title="SaaS dédié", value="saasdedie"),
     ]
@@ -101,8 +102,11 @@ def run_interactive(catalogs: dict) -> dict:
         "Quelle est la plateforme de destination ?", choices=destination_platform_choices
     ).ask()
     is_carboniocloud = destination_platform == "carboniocloud"
+    # Pas d'infrastructure à dimensionner : CarbonioCloud (plateforme Zextras
+    # gérée) ou plateforme On Premise déjà existante (déjà en place).
+    no_infra = destination_platform in ("carboniocloud", "onpremise_existant")
 
-    if is_carboniocloud:
+    if no_infra:
         stockage_objet = False
         hsm_active = False
         retention_days = None
@@ -153,7 +157,7 @@ def run_interactive(catalogs: dict) -> dict:
         edition_collaborative = questionary.confirm("Édition collaborative ?", default=False).ask()
         visio = questionary.confirm("Visioconférence ?", default=False).ask()
 
-    if is_carboniocloud:
+    if no_infra:
         migration_factory = False
     else:
         migration_factory = questionary.confirm(
@@ -161,15 +165,15 @@ def run_interactive(catalogs: dict) -> dict:
         ).ask()
 
     imap = True
-    if not is_carboniocloud and needs_imap_question(comptes, catalogs["sizing_rules"]):
+    if not no_infra and needs_imap_question(comptes, catalogs["sizing_rules"]):
         imap = questionary.confirm(
             "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
         ).ask()
 
-    # --- Infrastructure de qualification (optionnelle, sans objet en CarbonioCloud) ---
+    # --- Infrastructure de qualification (optionnelle, sans objet sans infrastructure à dimensionner) ---
     qualification_active = False
     qualification_ha_mirror = False
-    if not is_carboniocloud:
+    if not no_infra:
         qualification_active = questionary.confirm(
             "Faut-il prévoir une infrastructure de qualification ?", default=False
         ).ask()
@@ -209,9 +213,10 @@ def run_interactive(catalogs: dict) -> dict:
             default=False
         ).ask()
 
-    if is_carboniocloud:
-        # Pas de MCO vu que c'est du cloud : la maintenance en condition
-        # opérationnelle est intégralement à la charge de Zextras.
+    if no_infra:
+        # Pas de MCO : en CarbonioCloud la maintenance est intégralement à
+        # la charge de Zextras ; sur une plateforme existante, elle n'entre
+        # pas dans le périmètre de cette prestation.
         mco_contract = False
     else:
         mco_contract = questionary.confirm(
@@ -400,8 +405,8 @@ def main():
         client_config = run_interactive(catalogs)
         output_path = str(CLIENTS_DIR / f"{slugify(get_client(client_config)['name'])}.yaml")
 
-    if client_config.get("prestation", {}).get("destination_platform") == "carboniocloud":
-        # CarbonioCloud : pas d'infrastructure à dimensionner, donc pas de
+    if client_config.get("prestation", {}).get("destination_platform") in ("carboniocloud", "onpremise_existant"):
+        # CarbonioCloud / plateforme existante : pas d'infrastructure à dimensionner, donc pas de
         # palier HA ni de nombre de mailstores à calculer.
         client_config["nodes"] = []
         client_config["qualification_nodes"] = []

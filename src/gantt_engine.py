@@ -107,16 +107,16 @@ class WorkCalendar:
 # ---------------------------------------------------------------------
 
 def filter_tasks_for_destination(raw_tasks: list, destination_platform: str) -> list:
-    """Retire les tâches marquées skip_if_carboniocloud quand la
-    destination est CarbonioCloud (rien à construire sur une plateforme
-    mutualisée déjà prête), et rebranche toute tâche restante qui
+    """Retire les tâches marquées skip_if_no_infra quand la
+    destination est CarbonioCloud ou une plateforme On Premise déjà
+    existante (rien à construire sur une plateforme déjà prête), et rebranche toute tâche restante qui
     dépendait d'une tâche retirée sur le plus proche ancêtre encore
     présent (en remontant la chaîne demarre_apres des tâches retirées).
     No-op pour onpremise/saasdedie."""
-    if destination_platform != "carboniocloud":
+    if destination_platform not in ("carboniocloud", "onpremise_existant"):
         return raw_tasks
 
-    removed = {str(t["id"]): t for t in raw_tasks if t.get("skip_if_carboniocloud")}
+    removed = {str(t["id"]): t for t in raw_tasks if t.get("skip_if_no_infra")}
     kept = [t for t in raw_tasks if str(t["id"]) not in removed]
 
     def resolve_ancestor(ref):

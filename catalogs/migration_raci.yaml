@@ -3,7 +3,7 @@
 # par Julien. "phase" vide = suite de la même phase que la ligne
 # précédente (pas de fusion de cellule, comme dans le document source).
 # "tag" (optionnel) : n'affiche cette ligne que pour la plateforme de
-# destination correspondante (onpremise / carboniocloud / saasdedie).
+# destination correspondante (onpremise / carboniocloud / onpremise_existant / saasdedie).
 
 - {phase: "Cadrage", activite: "Définition de la stratégie de migration (bascule unique ou lots)", client: "C / A", zextras: "R"}
 - {phase: "", activite: "Définition du planning et des fenêtres de bascule", client: "A", zextras: "R / C"}

@@ -64,6 +64,7 @@ SERVICE_DISPLAY_LABELS = {
 DESTINATION_PLATFORM_LABELS = {
     "carboniocloud": "CarbonioCloud",
     "onpremise": "On Premise",
+    "onpremise_existant": "Plateforme Carbonio existante",
     "saasdedie": "SaaS dédié",
 }
 
@@ -265,14 +266,17 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "destination_platform": destination_platform_raw,
         "is_onpremise": destination_platform_raw == "onpremise",
         "is_carboniocloud": destination_platform_raw == "carboniocloud",
+        "is_onpremise_existant": destination_platform_raw == "onpremise_existant",
         "is_saasdedie": destination_platform_raw == "saasdedie",
+        # Pas d'infrastructure à dimensionner (ni schéma, ni bilan, ni MCO).
+        "no_infra": destination_platform_raw in ("carboniocloud", "onpremise_existant"),
         "mco": prestation["mco_contract"],
     }
 
     # Chapitre "Méthodologie de pilotage du projet" : affiché si contrat de
     # MCO, migration incluse, OU plateforme non On Premise (CarbonioCloud/
-    # SaaS dédié assimilés à une forme de SaaS) — HYPOTHÈSE à confirmer.
-    is_saas_like = destination_platform_raw in ("carboniocloud", "saasdedie")
+    # plateforme existante/SaaS dédié) — HYPOTHÈSE à confirmer.
+    is_saas_like = destination_platform_raw in ("carboniocloud", "onpremise_existant", "saasdedie")
     pilotage_active = prestation["mco_contract"] or prestation["migration_included"] or is_saas_like
 
     # Tableau RACI de la migration : n'inclut une ligne taguée que si elle
@@ -483,7 +487,7 @@ def render_document(ctx: dict) -> str:
     prerequis = env.get_template("prerequis.tex.j2").render(**ctx)
     architecture = (env.get_template("architecture.tex.j2").render(**ctx)
                     if ctx["document_scope"]["schemas_architecture"]
-                    and not ctx["migration"]["is_carboniocloud"] else "")
+                    and not ctx["migration"]["no_infra"] else "")
     qualification = (env.get_template("qualification.tex.j2").render(**ctx)
                       if ctx["qualification"]["active"] else "")
     migration_methodology = (env.get_template("migration_methodology.tex.j2").render(**ctx)
@@ -493,7 +497,7 @@ def render_document(ctx: dict) -> str:
     gantt_migration = (env.get_template("gantt_migration.tex.j2").render(**ctx)
                         if ctx["gantt"]["active"] and ctx["document_scope"]["planning_migration"] else "")
     bilan_ressources = (env.get_template("bilan_ressources.tex.j2").render(**ctx)
-                         if not ctx["migration"]["is_carboniocloud"] else "")
+                         if not ctx["migration"]["no_infra"] else "")
 
     # Pied de page (nom prestataire + pagination) activé seulement à partir
     # du chapitre 1 : rien sur la page de garde, l'historique des révisions

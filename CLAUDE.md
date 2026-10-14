@@ -2,7 +2,7 @@
 
 Document de référence pour reprendre le projet en local : contexte, historique, architecture,
 règles métier, pièges techniques déjà rencontrés et conventions de travail. À lire en entier avant
-toute modification. État documenté : **v0.24.0** (dernier commit connu : `47d5638`).
+toute modification. État documenté : **v0.27.0**.
 
 Dépôt : https://github.com/JulienNicolas37/CarbonioSizingGenerator
 Auteur : Julien (Zextras Services, Responsable de production, secteur Amboise/Tours).
@@ -107,7 +107,7 @@ méthodologie migration, méthodologie projet, planning. Ce choix n'est **jamais
 
 Clés racine : `revisions` (**toujours en premier**), `parties_prenantes` (`client`, `prestataire` avec
 commercial/auteur/chef_projet en clair, jamais par id), `prestation` (migration_included,
-destination_platform onpremise|carboniocloud|saasdedie, mco_contract), `gantt`, `services`, `infra`,
+destination_platform onpremise|carboniocloud|onpremise_existant|saasdedie, mco_contract), `gantt`, `services`, `infra`,
 puis sections **calculées** (`nodes`, `qualification_nodes`, `infra_resolved`) — jamais éditées à la main.
 Référence exhaustive commentée : `config/clients/client_exemple_reference.yaml` (à tenir à jour à
 chaque nouveau champ). `--non-interactive` n'ajoute pas rétroactivement les nouveaux champs aux
@@ -129,7 +129,9 @@ anciennes configs (champ absent = valeur par défaut/False).
   « Tâches » flottant. **0.18** : plus de marge sur le backup.
 - **0.19 → 0.21** : ligne VMware, pool VM technique, rétention backup par tranches.
 - **0.22** : sous-chapitre « Précisions techniques ». **0.23(.1)** : pool PMG (+ correctif commit partiel).
-  **0.24** : ordre d'affichage des nœuds DMZ.
+  **0.24** : ordre d'affichage des nœuds DMZ. **0.25/0.26** : allègement CarbonioCloud, Gantt sans
+  tâches de construction. **0.27** : plateforme de destination « On Premise déjà existante »
+  (`no_infra` = carboniocloud + onpremise_existant ; services demandés, pas de MCO).
 
 ## 7. Pièges techniques déjà rencontrés (ne pas les refaire)
 

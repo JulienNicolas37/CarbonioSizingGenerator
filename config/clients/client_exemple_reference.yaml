@@ -85,9 +85,14 @@ prestation:
   # le contrat, l'autre les choix d'architecture qui en découlent).
   migration_included: false          # true -> ajoute le chapitre "Méthodologie de migration"
                                        # (et le planning Gantt si la section "gantt" est renseignée)
-  destination_platform: "onpremise"   # "onpremise" | "carboniocloud" | "saasdedie"
+  destination_platform: "onpremise"   # "onpremise" | "carboniocloud" | "onpremise_existant" | "saasdedie"
                                        # pilote le contenu conditionnel du chapitre migration
                                        # (balises <onpremise>/<carboniocloud>/<saasdedie> du texte source)
+                                       # "onpremise_existant" : plateforme Carbonio déjà en place. Même
+                                       # logique que "carboniocloud" (aucune question d'infra, nodes vides,
+                                       # pas de MCO, tâches de construction retirées du Gantt), MAIS les
+                                       # 5 services restent demandés. Libellé : "Plateforme Carbonio
+                                       # existante" ; le prérequis affiche "aucune infrastructure à fournir".
                                        # "carboniocloud" : pas d'infrastructure cliente à dimensionner —
                                        # generate_sizing.py ne pose alors AUCUNE des questions d'infra
                                        # (stockage Objet, HSM, backups, qualification, VMware/pool
@@ -102,7 +107,7 @@ prestation:
                                         # déclencher le chapitre "Méthodologie de pilotage du projet"
                                         # (avec migration_included et destination_platform != onpremise)
                                         # Toujours false et jamais posé en interactif si
-                                        # destination_platform="carboniocloud" (MCO assuré par Zextras).
+                                        # destination_platform="carboniocloud" (MCO assuré par Zextras) ou "onpremise_existant".
 
 # Section "gantt" : présente uniquement si migration_included=true au
 # moment de la génération. Son contenu par défaut vient de

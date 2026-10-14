@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.27.0 — Nouvelle plateforme de destination « Plateforme On Premise déjà existante »
+- Nouveau choix `destination_platform: onpremise_existant` (libellé interactif « Plateforme On
+  Premise déjà existante », libellé document « Plateforme Carbonio existante »).
+- Comportement proche de CarbonioCloud (aucune infrastructure à dimensionner : questions
+  d'infra, qualification, optionnels, usine de migration et MCO sautés ; `nodes` vides ; schéma
+  d'architecture, dimensionnement et Bilan des besoins masqués ; tâches de construction retirées
+  du Gantt ; chapitre de pilotage affiché), **mais** les 5 services fonctionnels restent demandés.
+- Nouveau paragraphe « Infrastructure de destination » dans les Prérequis et texte dédié dans la
+  méthodologie de migration (« configuration de la plateforme Carbonio existante »).
+- Notion commune `no_infra` (carboniocloud + onpremise_existant) ; les textes spécifiques à
+  CarbonioCloud (`is_carboniocloud`) sont conservés tels quels.
+- Renommage du flag `skip_if_carboniocloud` en `skip_if_no_infra` (catalogue Gantt + moteur).
+- Non-régression vérifiée : `client_exemple_petite`, `univ_amboise`, config CarbonioCloud.
+
 ## 0.26.0 — Retrait des tâches de construction de plateforme du Gantt pour Carbonio Cloud
 - **Planning de migration** : les 5 tâches de construction d'infrastructure ("Fourniture des
   pré-requis de construction de la plateforme", "Mise en place des pré-requis de plateforme
