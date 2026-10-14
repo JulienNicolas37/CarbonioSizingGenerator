@@ -233,7 +233,7 @@ def run_interactive(catalogs: dict) -> dict:
             "Combien de bascules (lots de migration) sont prévues ?", default="1"
         ).ask())
         date_premiere_bascule_souhaitee = questionary.text(
-            "Date souhaitée pour la première bascule (JJ/MM/AAAA, laisser vide pour un calcul automatique) :",
+            "Date souhaitée pour la première bascule (mise en production, JJ/MM/AAAA, laisser vide pour un calcul automatique) :",
             default=""
         ).ask() or None
         date_debut_estimee = questionary.text(

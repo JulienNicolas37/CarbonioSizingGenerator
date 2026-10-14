@@ -131,7 +131,9 @@ gantt:
                                         # affiché en fin de questionnaire ET dans le document)
   nombre_bascules: 1                    # nombre de lots de migration — répète le groupe de tâches
                                          # "bascule" du planning autant de fois
-  date_premiere_bascule_souhaitee: null # JJ/MM/AAAA optionnel — sinon calculée automatiquement
+  date_premiere_bascule_souhaitee: null # JJ/MM/AAAA optionnel — date de la BASCULE elle-même (la synchronisation
+                                        # est calée en amont) ; avancée au 1er lun/mar/mer, jamais avant la date
+                                        # au plus tôt ; sinon calculée automatiquement
                                          # (fin des dépendances, avancée au 1er lundi/mardi/mercredi
                                          # qui suit ; une date trop tôt par rapport aux dépendances
                                          # est ignorée au profit du calcul automatique)

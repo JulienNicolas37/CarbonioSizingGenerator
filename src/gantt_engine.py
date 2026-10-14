@@ -67,6 +67,12 @@ class WorkCalendar:
             d += timedelta(days=1)
         return d
 
+    def previous_working_day(self, d: date) -> date:
+        """d si jour travaillé, sinon le jour travaillé précédent."""
+        while not self.is_working_day(d):
+            d -= timedelta(days=1)
+        return d
+
     def next_after(self, d: date) -> date:
         """Premier jour travaillé strictement après d."""
         return self.next_working_day(d + timedelta(days=1))
@@ -205,8 +211,11 @@ def compute_schedule(raw_tasks: list, calendar: WorkCalendar, date_debut_projet:
     Règle de calage de la bascule (jour de cutover = 1ère tâche de la
     phase "Bascule" au sein du lot, PAS le début du groupe répétable
     entier — hypothèse retenue après échange) :
-      - Lot 1 : fin des tâches dont dépend le groupe, ou date souhaitée
-        si postérieure, puis avancé au premier lundi/mardi/mercredi.
+      - Lot 1 : date de bascule = date souhaitée (date de la bascule
+        elle-même, la synchronisation est calée en amont) si elle est
+        postérieure à la date au plus tôt (fin des tâches dont dépend le
+        groupe + durée de la synchronisation), sinon la date au plus tôt ;
+        puis avancée au premier lundi/mardi/mercredi.
       - Lot 2 : +14 jours calendaires par rapport au lot 1 (même jour de
         semaine, garanti par construction).
       - Lot N>=3 : +7 jours calendaires par rapport au lot N-1.
@@ -313,6 +322,30 @@ def compute_schedule(raw_tasks: list, calendar: WorkCalendar, date_debut_projet:
         entry_id, cutover_id = entry_ids[lot], cutover_ids[lot]
         gap_days = working_days_span(entry_id, cutover_id, lot) if cutover_id else 0
 
+        def schedule_lot(entry_start):
+            """Déroule le lot depuis entry_start ; retourne {tid: (start, end)}."""
+            local = {}
+            ent = tasks[entry_id]
+            local[entry_id] = (entry_start, entry_start if ent["jalon"] else
+                               calendar.add_working_days(entry_start, ent.get("duree_jours") or 1))
+            remaining_lot = [tid for tid in lot_task_ids[lot] if tid != entry_id]
+            progress3 = True
+            while remaining_lot and progress3:
+                progress3 = False
+                still3 = []
+                for tid in remaining_lot:
+                    pred = tasks[tid]["demarre_apres"]
+                    if pred in local:
+                        pred_end = local[pred][1]
+                        start = pred_end if tasks[tid]["jalon"] else calendar.next_after(pred_end)
+                        end = start if tasks[tid]["jalon"] else calendar.add_working_days(start, tasks[tid].get("duree_jours") or 1)
+                        local[tid] = (start, end)
+                        progress3 = True
+                    else:
+                        still3.append(tid)
+                remaining_lot = still3
+            return local
+
         if override:
             cutover = parse_date_fr(override) if isinstance(override, str) else override
         elif lot == 1:
@@ -321,37 +354,42 @@ def compute_schedule(raw_tasks: list, calendar: WorkCalendar, date_debut_projet:
                 earliest_entry = calendar.next_after(end_of(pred))
             else:
                 earliest_entry = calendar.next_working_day(date_debut_projet)
-            base_entry = date_premiere_bascule_souhaitee if (
-                date_premiere_bascule_souhaitee and date_premiere_bascule_souhaitee >= earliest_entry
-            ) else earliest_entry
-            provisional_cutover = base_entry + timedelta(days=gap_days)
+            # La date souhaitée est celle de la BASCULE elle-même (et non du
+            # début de la synchronisation) : la phase de synchronisation
+            # pré-bascule est donc calée en amont, à rebours.
+            earliest_cutover = (schedule_lot(earliest_entry)[cutover_id][0]
+                                if cutover_id else earliest_entry + timedelta(days=gap_days))
+            provisional_cutover = (
+                date_premiere_bascule_souhaitee
+                if date_premiere_bascule_souhaitee and date_premiere_bascule_souhaitee >= earliest_cutover
+                else earliest_cutover
+            )
             cutover = calendar.snap_to_mon_tue_wed(provisional_cutover)
         elif lot == 2:
             cutover = bascule_dates[1] + timedelta(days=14)
         else:
             cutover = bascule_dates[lot - 1] + timedelta(days=7)
 
-        bascule_dates[lot] = cutover
+        # Le déroulé à blanc (gap_days) ignore les jours fériés : on ajuste
+        # donc le début de la synchronisation pour que la tâche de bascule
+        # tombe exactement sur la date cible (plus grand début <= cible).
         entry_start = calendar.next_working_day(cutover - timedelta(days=gap_days))
-
-        schedule_task(entry_id, entry_start,
-                      entry_start if tasks[entry_id]["jalon"] else calendar.add_working_days(entry_start, tasks[entry_id].get("duree_jours") or 1))
-        remaining_lot = [tid for tid in lot_task_ids[lot] if tid != entry_id]
-        progress3 = True
-        while remaining_lot and progress3:
-            progress3 = False
-            still3 = []
-            for tid in remaining_lot:
-                pred = tasks[tid]["demarre_apres"]
-                if pred in schedule:
-                    pred_end = end_of(pred)
-                    start = pred_end if tasks[tid]["jalon"] else calendar.next_after(pred_end)
-                    end = start if tasks[tid]["jalon"] else calendar.add_working_days(start, tasks[tid].get("duree_jours") or 1)
-                    schedule_task(tid, start, end)
-                    progress3 = True
-                else:
-                    still3.append(tid)
-            remaining_lot = still3
+        local = schedule_lot(entry_start)
+        if cutover_id:
+            for _ in range(60):
+                if local[cutover_id][0] <= cutover:
+                    break
+                entry_start = calendar.previous_working_day(entry_start - timedelta(days=1))
+                local = schedule_lot(entry_start)
+            for _ in range(60):
+                nxt = calendar.next_working_day(entry_start + timedelta(days=1))
+                nlocal = schedule_lot(nxt)
+                if nlocal[cutover_id][0] > cutover:
+                    break
+                entry_start, local = nxt, nlocal
+            cutover = local[cutover_id][0]
+        bascule_dates[lot] = cutover
+        schedule.update(local)
 
     # 4. Rattrapage : tâches hors groupe dépendant du groupe répétable (17,18,19,20,21)
     remaining = [tid for tid in non_repeat_ids if tid not in schedule]

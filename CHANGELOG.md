@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.27.1 — Correctif : date de première bascule du Gantt
+- `date_premiere_bascule_souhaitee` était interprétée comme la date de DÉBUT de la
+  synchronisation pré-bascule, la bascule tombant ensuite une semaine plus tard. C'est
+  désormais la date de la bascule elle-même ; la synchronisation est calée en amont.
+  La date reste avancée au 1er lundi/mardi/mercredi, et ne peut pas précéder la date au plus
+  tôt (fin des dépendances + durée de la synchronisation, calculée par simulation).
+- Correctif associé : la date de bascule affichée/annoncée pouvait différer d'un ou
+  plusieurs jours de la tâche de bascule réelle (jours fériés et week-ends dans la phase de
+  synchronisation). Le début du lot est maintenant ajusté pour que la tâche de bascule tombe
+  exactement sur la date cible (lots 2+ compris).
+- Effet visible : le planning de `univ_amboise` avance d'un jour (bascule réelle = date annoncée).
+
 ## 0.27.0 — Nouvelle plateforme de destination « Plateforme On Premise déjà existante »
 - Nouveau choix `destination_platform: onpremise_existant` (libellé interactif « Plateforme On
   Premise déjà existante », libellé document « Plateforme Carbonio existante »).
