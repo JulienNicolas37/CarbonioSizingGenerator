@@ -30,7 +30,8 @@ communiqués par le client~:
   \item Backups~: \VAR{ "Oui" if besoins.backups else "Non" }\BLOCK{ if besoins.backups and besoins.backup_sur_s3 } (sur S3)\BLOCK{ endif }\BLOCK{ if besoins.backups and besoins.backup_retention_days }, rétention de \VAR{ besoins.backup_retention_days } jour(s)\BLOCK{ endif }
 \BLOCK{ endif }
 
-  \item Services demandés~: \VAR{ besoins.services_display }
+  \item Fonctions de la plateforme~: \VAR{ besoins.services_display }
+  \item Services demandés~: \VAR{ besoins.prestations_display }
 \end{itemize}
 
 \section{Besoins fonctionnels sur la plateforme}

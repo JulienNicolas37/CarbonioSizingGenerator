@@ -317,6 +317,14 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
     services_display = "Messagerie, agenda et contacts (toujours inclus)"
     if active_services:
         services_display += ", " + ", ".join(active_services)
+    # Services demandés (prestations) : à ne pas confondre avec les fonctions
+    # de la plateforme ci-dessus.
+    prestations_list = []
+    if prestation["migration_included"]:
+        prestations_list.append("Migration des données")
+    if prestation["mco_contract"] and not migration["no_infra"]:
+        prestations_list.append("Maintien en conditions opérationnelles (MCO)")
+    prestations_display = ", ".join(prestations_list) or "Mise en place de la plateforme uniquement"
     infra_raw = client_config.get("infra", {})
     stockage_objet_actif = bool(client_raw.get("stockage_objet"))
     hsm_active = infra_raw.get("hsm_active", False)
@@ -331,6 +339,7 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
         "volumetrie_to": client_raw.get("volumetrie_to", "[à préciser]"),
         "stockage_objet": "Oui" if stockage_objet_actif else "Non",
         "services_display": escape_latex(services_display),
+        "prestations_display": escape_latex(prestations_display),
         "hsm_active": hsm_active,
         "secondaire_is_s3": secondaire_is_s3,
         "secondaire_label": secondaire_label,
