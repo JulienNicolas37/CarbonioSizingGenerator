@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.29.1 — Récapitulatif des besoins : fonctions de la plateforme vs services demandés
+- En 4.2, la ligne « Services demandés » listait les fonctions de la plateforme (messagerie,
+  chat, files…). Elle devient « Fonctions de la plateforme ».
+- Nouvelle ligne « Services demandés » listant les prestations : migration des données et
+  contrat de MCO (hors plateformes sans infrastructure) ; sinon « Mise en place de la
+  plateforme uniquement ».
+
 ## 0.29.0 — Option `--edit` : relancer le questionnaire sur une config existante
 - `generate_sizing.py --client fichier.yaml --edit` rejoue tout le questionnaire avec, pour
   chaque question, la valeur du fichier comme réponse par défaut (repli sur le défaut habituel
