@@ -51,23 +51,34 @@ def print_review(client_config: dict, result: dict) -> None:
     print()
 
 
-def interactive_ha_choice(suggestion_level: int, reason: str) -> int:
+def interactive_ha_choice(suggestion_level: int, reason: str, current=None) -> int:
     print(f"\nPalier de répartition de charge suggéré : {suggestion_level} ({reason})")
+    if isinstance(current, int) and current != suggestion_level:
+        answer = input(f"Palier actuel du fichier : {current}. [Entrée = garder {current} / entrer un autre palier 0-3] : ").strip()
+        return current if answer == "" else int(answer)
     answer = input(f"Appliquer ce palier ? [Entrée = oui / entrer un autre palier 0-3] : ").strip()
     if answer == "":
         return suggestion_level
     return int(answer)
 
 
-def interactive_mailstore_choice(suggestion_count: int, reason: str) -> int:
+def interactive_mailstore_choice(suggestion_count: int, reason: str, current=None) -> int:
     print(f"\nNombre de mailstores suggéré : {suggestion_count} ({reason})")
+    if isinstance(current, int) and current != suggestion_count:
+        answer = input(f"Nombre actuel du fichier : {current}. [Entrée = garder {current} / entrer un nombre] : ").strip()
+        return current if answer == "" else int(answer)
     answer = input("Ajuster ce nombre ? [Entrée = garder la suggestion / entrer un nombre] : ").strip()
     if answer == "":
         return suggestion_count
     return int(answer)
 
 
-def run_interactive(catalogs: dict) -> dict:
+def run_interactive(catalogs: dict, existing: dict = None) -> dict:
+    """Questionnaire complet. Si `existing` (config client déjà écrite) est
+    fourni, chaque question prend la valeur du fichier comme réponse par
+    défaut (repli sur le défaut habituel si la clé est absente), et les
+    données non posées en interactif (revisions, logo, contacts, surcharges
+    de bascules, etc.) sont conservées."""
     try:
         import questionary
     except ImportError:
@@ -75,17 +86,30 @@ def run_interactive(catalogs: dict) -> dict:
         print("Installation : pip install questionary --break-system-packages")
         sys.exit(1)
 
-    print("=== Nouveau dimensionnement Carbonio ===\n")
+    ex = existing or {}
+    pc = (ex.get("parties_prenantes") or {}).get("client") or {}
+    pp = (ex.get("parties_prenantes") or {}).get("prestataire") or {}
+    inf = ex.get("infra") or {}
+    pre = ex.get("prestation") or {}
+    svc = ex.get("services") or {}
+    gnt = ex.get("gantt") or {}
+    scope_ex = pre.get("migration_scope") or {}
 
-    name = questionary.text("Nom du client :").ask()
+    def pick(value, fallback):
+        return fallback if value is None else value
+
+    print("=== Révision du dimensionnement Carbonio ===\n" if existing
+          else "=== Nouveau dimensionnement Carbonio ===\n")
+
+    name = questionary.text("Nom du client :", default=str(pick(pc.get("name"), ""))).ask()
     classification = questionary.select(
         "Classification du document :",
         choices=["Public", "Client", "Restreint", "Confidentiel"],
-        default="Client",
+        default=pick(pc.get("classification"), "Client"),
     ).ask()
-    domaines = int(questionary.text("Nombre de domaines :", default="1").ask())
-    comptes = int(questionary.text("Nombre de comptes :").ask())
-    volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default="0").ask())
+    domaines = int(questionary.text("Nombre de domaines :", default=str(pick(pc.get("domaines"), 1))).ask())
+    comptes = int(questionary.text("Nombre de comptes :", default=str(pick(pc.get("comptes"), ""))).ask())
+    volumetrie_to = float(questionary.text("Volumétrie totale (To) :", default=str(pick(pc.get("volumetrie_to"), 0))).ask())
 
     # La plateforme de destination est demandée ici, juste après la
     # volumétrie, car elle détermine si les questions de dimensionnement
@@ -99,7 +123,8 @@ def run_interactive(catalogs: dict) -> dict:
         questionary.Choice(title="SaaS dédié", value="saasdedie"),
     ]
     destination_platform = questionary.select(
-        "Quelle est la plateforme de destination ?", choices=destination_platform_choices
+        "Quelle est la plateforme de destination ?", choices=destination_platform_choices,
+        default=pre.get("destination_platform"),
     ).ask()
     is_carboniocloud = destination_platform == "carboniocloud"
     # Pas d'infrastructure à dimensionner : CarbonioCloud (plateforme Zextras
@@ -114,7 +139,7 @@ def run_interactive(catalogs: dict) -> dict:
         backup_sur_s3 = False
         backup_retention_days = None
     else:
-        stockage_objet = questionary.confirm("Stockage Objet activé ?", default=False).ask()
+        stockage_objet = questionary.confirm("Stockage Objet activé ?", default=pick(pc.get("stockage_objet"), False)).ask()
 
         # Le module HSM (délestage des données froides vers un stockage
         # secondaire) est toujours posé juste après la question du S3, même
@@ -123,27 +148,27 @@ def run_interactive(catalogs: dict) -> dict:
         # suggestion de départ reprend la réponse donnée au S3, sans l'imposer.
         hsm_active = questionary.confirm(
             "Activer le module HSM (délestage des données froides vers un stockage secondaire) ?",
-            default=stockage_objet
+            default=pick(inf.get("hsm_active"), stockage_objet)
         ).ask()
         retention_days = None
         if hsm_active:
             retention_days = int(questionary.text(
-                "Rétention en jours à prévoir sur le stockage primaire :", default="7"
+                "Rétention en jours à prévoir sur le stockage primaire :", default=str(pick(inf.get("retention_days"), 7))
             ).ask())
 
-        backups = questionary.confirm("Mettre en place des backups ?", default=True).ask()
+        backups = questionary.confirm("Mettre en place des backups ?", default=pick(inf.get("backups"), True)).ask()
         backup_sur_s3 = False
         backup_retention_days = None
         if backups:
             if stockage_objet:
                 backup_sur_s3 = questionary.confirm(
-                    "Le backup sera-t-il également sur S3 ?", default=False
+                    "Le backup sera-t-il également sur S3 ?", default=pick(inf.get("backup_sur_s3"), False)
                 ).ask()
             # Habituellement par tranche de 30 jours : chaque tranche
             # supplémentaire au-delà de la première ajoute 5 % de l'usage
             # (primaire + secondaire) au volume de backup (voir sizing_rules.yaml).
             backup_retention_days = int(questionary.text(
-                "Combien de jours de rétention pour les backups ?", default="30"
+                "Combien de jours de rétention pour les backups ?", default=str(pick(inf.get("backup_retention_days"), 30))
             ).ask())
 
     if is_carboniocloud:
@@ -151,23 +176,23 @@ def run_interactive(catalogs: dict) -> dict:
         chat = tache = files = edition_collaborative = visio = True
     else:
         print("\nServices à activer (email/calendrier/contacts sont toujours inclus) :")
-        chat = questionary.confirm("Chat ?", default=False).ask()
-        tache = questionary.confirm("Tâches ?", default=False).ask()
-        files = questionary.confirm("Files ?", default=False).ask()
-        edition_collaborative = questionary.confirm("Édition collaborative ?", default=False).ask()
-        visio = questionary.confirm("Visioconférence ?", default=False).ask()
+        chat = questionary.confirm("Chat ?", default=pick(svc.get("chat"), False)).ask()
+        tache = questionary.confirm("Tâches ?", default=pick(svc.get("tache"), False)).ask()
+        files = questionary.confirm("Files ?", default=pick(svc.get("files"), False)).ask()
+        edition_collaborative = questionary.confirm("Édition collaborative ?", default=pick(svc.get("edition_collaborative"), False)).ask()
+        visio = questionary.confirm("Visioconférence ?", default=pick(svc.get("visio"), False)).ask()
 
     if no_infra:
         migration_factory = False
     else:
         migration_factory = questionary.confirm(
-            "Y a-t-il une usine de migration sur l'infrastructure client ?", default=False
+            "Y a-t-il une usine de migration sur l'infrastructure client ?", default=pick(inf.get("migration_factory"), False)
         ).ask()
 
     imap = True
     if not no_infra and needs_imap_question(comptes, catalogs["sizing_rules"]):
         imap = questionary.confirm(
-            "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=True
+            "L'accès IMAP direct est-il proposé aux utilisateurs ?", default=pick(inf.get("imap"), True)
         ).ask()
 
     # --- Infrastructure de qualification (optionnelle, sans objet sans infrastructure à dimensionner) ---
@@ -175,7 +200,7 @@ def run_interactive(catalogs: dict) -> dict:
     qualification_ha_mirror = False
     if not no_infra:
         qualification_active = questionary.confirm(
-            "Faut-il prévoir une infrastructure de qualification ?", default=False
+            "Faut-il prévoir une infrastructure de qualification ?", default=pick(inf.get("qualification_active"), False)
         ).ask()
         if qualification_active:
             # Aperçu du palier HA suggéré à ce stade (le choix définitif n'est
@@ -185,14 +210,14 @@ def run_interactive(catalogs: dict) -> dict:
             if ha_preview.level > 0:
                 qualification_ha_mirror = questionary.confirm(
                     "Faut-il prévoir les mêmes fonctions HA (proxy, MTA, etc.) "
-                    "que la production sur la qualification ?", default=False
+                    "que la production sur la qualification ?", default=pick(inf.get("qualification_ha_mirror"), False)
                 ).ask()
 
     # --- Prestation commandée (migration, MCO) ---
     # Toujours posée (même sans migration) : couvre aussi bien onpremise,
     # saasdedie que carboniocloud.
     migration_included = questionary.confirm(
-        "La migration est-elle incluse dans la prestation ?", default=False
+        "La migration est-elle incluse dans la prestation ?", default=pick(pre.get("migration_included"), False)
     ).ask()
 
     # Données prises en charge par la migration (distinct des services que
@@ -201,12 +226,12 @@ def run_interactive(catalogs: dict) -> dict:
     if migration_included:
         print("\nDonnées prises en charge par la migration :")
         migration_scope = {
-            "email": questionary.confirm("Email ?", default=True).ask(),
-            "calendrier": questionary.confirm("Calendrier ?", default=True).ask(),
-            "contacts": questionary.confirm("Contacts ?", default=True).ask(),
-            "listes_distribution": questionary.confirm("Listes de distribution ?", default=False).ask(),
-            "ressources": questionary.confirm("Ressources ?", default=False).ask(),
-            "fichiers": questionary.confirm("Fichiers ?", default=False).ask(),
+            "email": questionary.confirm("Email ?", default=pick(scope_ex.get("email"), True)).ask(),
+            "calendrier": questionary.confirm("Calendrier ?", default=pick(scope_ex.get("calendrier"), True)).ask(),
+            "contacts": questionary.confirm("Contacts ?", default=pick(scope_ex.get("contacts"), True)).ask(),
+            "listes_distribution": questionary.confirm("Listes de distribution ?", default=pick(scope_ex.get("listes_distribution"), False)).ask(),
+            "ressources": questionary.confirm("Ressources ?", default=pick(scope_ex.get("ressources"), False)).ask(),
+            "fichiers": questionary.confirm("Fichiers ?", default=pick(scope_ex.get("fichiers"), False)).ask(),
         }
 
     # Pertinent seulement si le client (On Premise) ou l'hébergeur (SaaS
@@ -217,14 +242,14 @@ def run_interactive(catalogs: dict) -> dict:
     pmg_active = False
     if destination_platform in ("onpremise", "saasdedie"):
         vmware_virtualise = questionary.confirm(
-            "L'environnement de virtualisation est-il VMware ?", default=False
+            "L'environnement de virtualisation est-il VMware ?", default=pick(inf.get("vmware_virtualise"), False)
         ).ask()
         pool_technique = questionary.confirm(
-            "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", default=False
+            "Faut-il prévoir un pool VM technique (DNS, scripts, etc.) ?", default=pick(inf.get("pool_technique"), False)
         ).ask()
         pmg_active = questionary.confirm(
             "Faut-il ajouter un pool de passerelles AS/AV Proxmox Mail Gateway (PMG) ?",
-            default=False
+            default=pick(inf.get("pmg_active"), False)
         ).ask()
 
     if no_infra:
@@ -234,7 +259,7 @@ def run_interactive(catalogs: dict) -> dict:
         mco_contract = False
     else:
         mco_contract = questionary.confirm(
-            "Un contrat de MCO est-il prévu à la suite de la migration ?", default=False
+            "Un contrat de MCO est-il prévu à la suite de la migration ?", default=pick(pre.get("mco_contract"), False)
         ).ask()
 
     # --- Planning de migration (Gantt) — uniquement si migration incluse ---
@@ -244,17 +269,19 @@ def run_interactive(catalogs: dict) -> dict:
     date_fin_estimee = None
     if migration_included:
         nombre_bascules = int(questionary.text(
-            "Combien de bascules (lots de migration) sont prévues ?", default="1"
+            "Combien de bascules (lots de migration) sont prévues ?", default=str(pick(gnt.get("nombre_bascules"), 1))
         ).ask())
         date_premiere_bascule_souhaitee = questionary.text(
             "Date souhaitée pour la première bascule (mise en production, JJ/MM/AAAA, laisser vide pour un calcul automatique) :",
-            default=""
+            default=str(pick(gnt.get("date_premiere_bascule_souhaitee"), ""))
         ).ask() or None
         date_debut_estimee = questionary.text(
-            "Date de début estimée du projet (JJ/MM/AAAA) :"
+            "Date de début estimée du projet (JJ/MM/AAAA) :",
+            default=str(pick(gnt.get("date_debut_estimee"), ""))
         ).ask()
         date_fin_estimee = questionary.text(
-            "Date de fin estimée du projet (JJ/MM/AAAA) :"
+            "Date de fin estimée du projet (JJ/MM/AAAA) :",
+            default=str(pick(gnt.get("date_fin_estimee"), ""))
         ).ask()
 
     # --- Parties prenantes côté prestataire (Zextras) ---
@@ -269,9 +296,16 @@ def run_interactive(catalogs: dict) -> dict:
         questionary.Choice(title=f"{entry['nom']} ({entry.get('role', '')})", value=person_id)
         for person_id, entry in team_directory.items()
     ]
-    commercial_id = questionary.select("Commercial en charge :", choices=team_choices).ask()
-    auteur_id = questionary.select("Qui rédige ce document ?", choices=team_choices).ask()
-    chef_projet_id = questionary.select("Qui est le chef de projet ?", choices=team_choices).ask()
+    def existing_person_id(role):
+        nom = (pp.get(role) or {}).get("nom")
+        return next((pid for pid, e in team_directory.items() if e.get("nom") == nom), None)
+
+    commercial_id = questionary.select("Commercial en charge :", choices=team_choices,
+                                       default=existing_person_id("commercial")).ask()
+    auteur_id = questionary.select("Qui rédige ce document ?", choices=team_choices,
+                                   default=existing_person_id("auteur")).ask()
+    chef_projet_id = questionary.select("Qui est le chef de projet ?", choices=team_choices,
+                                        default=existing_person_id("chef_projet")).ask()
 
     def inline_person(person_id):
         entry = team_directory[person_id]
@@ -370,6 +404,30 @@ def run_interactive(catalogs: dict) -> dict:
             "qualification_ha_mirror": qualification_ha_mirror,
         },
     }
+
+    if existing:
+        # Conserve ce que le questionnaire ne pose pas : historique des
+        # révisions, coordonnées/logo client, config Gantt (jours, ICS,
+        # seuils, surcharges de bascules), palier HA / mailstores figés
+        # (reposés à la rétrospective), et toute clé inconnue.
+        if "revisions" in ex:
+            client_config["revisions"] = ex["revisions"]
+        new_client = client_config["parties_prenantes"]["client"]
+        for key in ("logo", "description", "site_web", "adresse", "contacts"):
+            if key in pc:
+                new_client[key] = pc[key]
+        if gnt:
+            merged_gantt = dict(gnt)
+            for key in ("date_debut_estimee", "date_fin_estimee", "nombre_bascules",
+                        "date_premiere_bascule_souhaitee"):
+                merged_gantt[key] = client_config["gantt"][key]
+            client_config["gantt"] = merged_gantt
+        for key in ("ha_tier", "mailstore_count"):
+            if key in inf:
+                client_config["infra"][key] = inf[key]
+        for key, value in ex.items():
+            if key not in client_config and key not in ("nodes", "qualification_nodes", "infra_resolved"):
+                client_config[key] = value
     return client_config
 
 
@@ -391,7 +449,7 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
     client = get_client(client_config)
     imap = infra.get("imap", True)
     ha_suggestion = suggest_ha_tier(client["comptes"], imap, catalogs["sizing_rules"])
-    ha_level_override = interactive_ha_choice(ha_suggestion.level, ha_suggestion.reason)
+    ha_level_override = interactive_ha_choice(ha_suggestion.level, ha_suggestion.reason, ha_override)
 
     mailstore_suggestion = suggest_mailstore_count(
         client["comptes"], client.get("volumetrie_to", 0),
@@ -399,7 +457,7 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
         catalogs["sizing_rules"],
     )
     mailstore_count_override = interactive_mailstore_choice(
-        mailstore_suggestion.count, mailstore_suggestion.reason
+        mailstore_suggestion.count, mailstore_suggestion.reason, mailstore_override
     )
     return ha_level_override, mailstore_count_override
 
@@ -407,15 +465,22 @@ def resolve_overrides(client_config: dict, catalogs: dict, non_interactive: bool
 def main():
     parser = argparse.ArgumentParser(description="Générateur de dimensionnement Carbonio")
     parser.add_argument("--client", help="Chemin vers une config client existante (YAML)")
+    parser.add_argument("--edit", action="store_true",
+                         help="Avec --client : relance le questionnaire complet en reprenant les valeurs du "
+                              "fichier comme réponses par défaut, puis réécrit le fichier")
     parser.add_argument("--non-interactive", action="store_true",
                          help="N'affiche pas la rétrospective, applique 'auto' ou les valeurs de la config telles quelles")
     args = parser.parse_args()
+    if args.edit and (not args.client or args.non_interactive):
+        parser.error("--edit nécessite --client et n'est pas compatible avec --non-interactive")
 
     catalogs = load_catalogs()
 
     if args.client:
         client_config = load_client_config(args.client)
         output_path = args.client
+        if args.edit:
+            client_config = run_interactive(catalogs, existing=client_config)
     else:
         client_config = run_interactive(catalogs)
         output_path = str(CLIENTS_DIR / f"{slugify(get_client(client_config)['name'])}.yaml")

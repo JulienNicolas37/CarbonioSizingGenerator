@@ -66,6 +66,11 @@ python3 src/generate_sizing.py
 # Relecture/ajustement d'une config existante
 python3 src/generate_sizing.py --client config/clients/univ_amboise.yaml
 
+# Relancer tout le questionnaire sur une config existante : chaque réponse
+# par défaut est la valeur du fichier (réécrit sur place, révisions, logo,
+# contacts et config Gantt conservés)
+python3 src/generate_sizing.py --client config/clients/univ_amboise.yaml --edit
+
 # 2. Génération du document de prérequis techniques (LaTeX + PDF)
 python3 src/generate_pdf.py --client config/clients/univ_amboise.yaml --compile
 # Demande "document complet ou partiel ?" — en partiel, propose d'ajouter

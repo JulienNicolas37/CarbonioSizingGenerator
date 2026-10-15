@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29.0 — Option `--edit` : relancer le questionnaire sur une config existante
+- `generate_sizing.py --client fichier.yaml --edit` rejoue tout le questionnaire avec, pour
+  chaque question, la valeur du fichier comme réponse par défaut (repli sur le défaut habituel
+  si la clé est absente, ex. champs ajoutés dans une version ultérieure).
+- Palier HA et nombre de mailstores sont reposés à la rétrospective ; la valeur figée dans le
+  fichier est proposée par défaut (la suggestion calculée reste affichée).
+- Le fichier est réécrit sur place ; sont conservés : `revisions`, logo/description/adresse/
+  contacts client, config Gantt (jours, ICS, seuils, `bascules_overrides`) et clés inconnues.
+- Incompatible avec `--non-interactive`.
+
 ## 0.28.0 — Périmètre de données migrées
 - Nouvelle clé `prestation.migration_scope` (email, calendrier, contacts, listes_distribution,
   ressources, fichiers), posée en interactif dès que la migration est incluse (défauts : email,
