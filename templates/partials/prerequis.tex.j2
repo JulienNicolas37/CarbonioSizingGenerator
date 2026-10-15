@@ -6,6 +6,9 @@ Le présent projet couvre les prestations suivantes~:
   \item Migration incluse dans la prestation~: \VAR{ "Oui" if prestation.migration_included else "Non" }
 \BLOCK{ if prestation.migration_included }
   \item Plateforme de destination~: \VAR{ prestation.destination_platform_display }
+\BLOCK{ if prestation.migration_scope_display }
+  \item Données migrées~: \VAR{ prestation.migration_scope_display }
+\BLOCK{ endif }
 \BLOCK{ if not migration.no_infra }
   \item Contrat de MCO à la suite de la migration~: \VAR{ "Oui" if prestation.mco_contract else "Non" }
 \BLOCK{ endif }
@@ -30,9 +33,8 @@ communiqués par le client~:
   \item Services demandés~: \VAR{ besoins.services_display }
 \end{itemize}
 
-\section{Besoins fonctionnels}
-Sont couverts par le présent document, sur la base des services
-retenus pour ce client~:
+\section{Besoins fonctionnels sur la plateforme}
+La plateforme de destination couvrira les besoins suivants :
 \begin{itemize}[nosep]
 \BLOCK{ for item in perimetre_items }
   \item \VAR{ item }

@@ -85,6 +85,15 @@ prestation:
   # le contrat, l'autre les choix d'architecture qui en découlent).
   migration_included: false          # true -> ajoute le chapitre "Méthodologie de migration"
                                        # (et le planning Gantt si la section "gantt" est renseignée)
+  migration_scope:                     # données prises en charge par la migration (uniquement si
+                                       # migration_included=true ; affichées en 4.1 "Données migrées").
+                                       # Distinct de "services" (ce que propose la plateforme).
+    email: true
+    calendrier: true
+    contacts: true
+    listes_distribution: false
+    ressources: false
+    fichiers: false
   destination_platform: "onpremise"   # "onpremise" | "carboniocloud" | "onpremise_existant" | "saasdedie"
                                        # pilote le contenu conditionnel du chapitre migration
                                        # (balises <onpremise>/<carboniocloud>/<saasdedie> du texte source)

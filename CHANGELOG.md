@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.0 — Périmètre de données migrées
+- Nouvelle clé `prestation.migration_scope` (email, calendrier, contacts, listes_distribution,
+  ressources, fichiers), posée en interactif dès que la migration est incluse (défauts : email,
+  calendrier, contacts à oui). Affichée en 4.1 « Données migrées ». Absente = rien affiché.
+
 ## 0.27.1 — Correctif : date de première bascule du Gantt
 - `date_premiere_bascule_souhaitee` était interprétée comme la date de DÉBUT de la
   synchronisation pré-bascule, la bascule tombant ensuite une semaine plus tard. C'est

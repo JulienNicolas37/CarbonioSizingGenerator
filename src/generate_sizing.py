@@ -195,6 +195,20 @@ def run_interactive(catalogs: dict) -> dict:
         "La migration est-elle incluse dans la prestation ?", default=False
     ).ask()
 
+    # Données prises en charge par la migration (distinct des services que
+    # propose la plateforme). Posé uniquement si migration incluse.
+    migration_scope = None
+    if migration_included:
+        print("\nDonnées prises en charge par la migration :")
+        migration_scope = {
+            "email": questionary.confirm("Email ?", default=True).ask(),
+            "calendrier": questionary.confirm("Calendrier ?", default=True).ask(),
+            "contacts": questionary.confirm("Contacts ?", default=True).ask(),
+            "listes_distribution": questionary.confirm("Listes de distribution ?", default=False).ask(),
+            "ressources": questionary.confirm("Ressources ?", default=False).ask(),
+            "fichiers": questionary.confirm("Fichiers ?", default=False).ask(),
+        }
+
     # Pertinent seulement si le client (On Premise) ou l'hébergeur (SaaS
     # dédié) opère sa propre infrastructure de virtualisation — sans
     # objet pour CarbonioCloud, qui est une plateforme Zextras gérée.
@@ -322,6 +336,7 @@ def run_interactive(catalogs: dict) -> dict:
         # infra ?!" — cette fois ces informations vivent bien à part).
         "prestation": {
             "migration_included": migration_included,
+            **({"migration_scope": migration_scope} if migration_scope else {}),
             "destination_platform": destination_platform,
             "mco_contract": mco_contract,
         },

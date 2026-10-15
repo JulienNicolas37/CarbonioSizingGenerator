@@ -58,6 +58,16 @@ SERVICE_DISPLAY_LABELS = {
     "visio": "Visioconférence",
 }
 
+# Données prises en charge par la migration (prestation.migration_scope)
+MIGRATION_SCOPE_LABELS = {
+    "email": "Email",
+    "calendrier": "Calendrier",
+    "contacts": "Contacts",
+    "listes_distribution": "Listes de distribution",
+    "ressources": "Ressources",
+    "fichiers": "Fichiers",
+}
+
 # Libellés d'affichage de la plateforme de destination (config client,
 # infra.destination_platform) — mêmes valeurs internes que les balises du
 # document de méthodologie de migration (onpremise/carboniocloud/saasdedie).
@@ -260,6 +270,11 @@ def build_context(client_config: dict, catalogs: dict, document_scope: dict) -> 
             DESTINATION_PLATFORM_LABELS.get(destination_platform_raw, destination_platform_raw)
         ),
         "mco_contract": prestation_raw.get("mco_contract", False),
+        # Champ absent (anciennes configs) -> aucune ligne affichée.
+        "migration_scope_display": escape_latex(", ".join(
+            label for key, label in MIGRATION_SCOPE_LABELS.items()
+            if (prestation_raw.get("migration_scope") or {}).get(key)
+        )),
     }
     migration = {
         "included": prestation["migration_included"],

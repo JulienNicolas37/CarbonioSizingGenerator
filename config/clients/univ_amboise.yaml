@@ -56,6 +56,13 @@ parties_prenantes:
       telephone: +33 6 89 99 84 69
 prestation:
   migration_included: true
+  migration_scope:
+    email: true
+    calendrier: true
+    contacts: true
+    listes_distribution: true
+    ressources: false
+    fichiers: true
   destination_platform: onpremise
   mco_contract: true
 gantt:
